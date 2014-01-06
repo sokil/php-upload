@@ -13,11 +13,11 @@
             uploadHandlerUrl:       null,
             uploadHandlerParams:    function() {},
             classname:              null,
-            onsuccess:              function() {},
-            onerror:                function() {},
+            onsuccess:              function(response) {},
+            onerror:                function(response) {},
             onbeforeupload:         function() {},
             onafterupload:          function() {},
-            onprogress:             function() {}
+            onprogress:             function(loaded, total) {}
         }, options);
         
         // init
