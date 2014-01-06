@@ -12,12 +12,12 @@
             progressHandlerUrl:     null,   // only for iframe
             uploadHandlerUrl:       null,
             uploadHandlerParams:    function() {},
+            classname:              null,
             onsuccess:              function() {},
             onerror:                function() {},
             onbeforeupload:         function() {},
             onafterupload:          function() {},
             onprogress:             function() {},
-            classname:              null
         }, options);
         
         // init
@@ -64,86 +64,20 @@
 
     uploader.prototype =
     {
-        _showButton: function()
-        {
-            this.container.removeClass('progress');
-            this.progresslabel.remove();
-            this.progressbar.remove();
-            this.progressbarback.remove();
-        },
-        
-        _showProgress: function()
-        {
-            this.container.addClass('progress');
-            
-            this.progressbarback = $('<div class="progressbarback"></div>').appendTo(this.container);
-            this.progressbar = $('<div class="progressbar"></div>').appendTo(this.container);
-            this.progresslabel = $('<div class="progresslabel">0%</div>').appendTo(this.container);
-        },
-        
-        onbeforeupload: function()
-        {
-            return this.options.onbeforeupload.call(this);            
-        },
-        
-        onafterupload: function()
-        {
-            this.options.onafterupload.call(this);
-        },
-
-        onprogress: function(current, total)
-        {
-            this.options.onprogress.call(this, current, total);
-            
-            var currentInMB = Math.round(current / 1024 / 1024);
-            var totalInMB = Math.round(total / 1024 / 1024);
-            
-            var persents = Math.round(currentInMB / totalInMB * 100) + '%';
-            
-            this.progresslabel.text(persents + ' (' + currentInMB + '/' + totalInMB + ' MB)');
-            this.progressbar.css({width: persents});
-        },
-        
-        onsuccess: function(response)
-        {
-            this.progresslabel.text('100%');
-            this.progressbar.css({width: '100%'});
-            
-            var self = this;
-            setTimeout(function() {
-                self._showButton();
-                self.options.onsuccess.call(this, response);
-            }, 100);
-        },
-        
-        onerror: function(error)
-        {
-            this.options.onerror.call(this);
-            
-            this._showButton();
-            
-            alert('errorMessage' in error ? error.errorMessage : error);
-        },
-
         uploadFile: function()
         {
-            if(this.onbeforeupload.call(this) == false)
+            if(this.options.onbeforeupload.call(this) === false) {
                 return;
+            }
             
-            this._showProgress();
-            
-            if(this.options.transport)
-            {
+            if(this.options.transport) {
                 this['_' + this.options.transport + 'Upload']();
             }
-            else
-            {
-                try
-                {
+            else {
+                try {
                     this._xhrUpload();
                 }
-                catch(e)
-                {
+                catch(e) {
                     this._iframeUpload();
                 }                
             }
@@ -152,39 +86,42 @@
         _xhrUpload: function()
         {            
             var xhr = new XMLHttpRequest();
-            if(!('upload' in xhr))
+            if(!('upload' in xhr)) {
                 throw new Error('XMLHttpRequest do not support file upload');
-
+            }
+            
             file = this.fileInput.get(0).files[0];          
             uri = this._getRequestUri({f: file.name});
             
             var self = this;
             xhr.onreadystatechange = function() {
-                if (xhr.readyState != 4)
+                if (xhr.readyState != 4) {
                     return;
+                }
                 
                 try {
-                    if(xhr.status != 200)
+                    if(xhr.status != 200) {
                         throw new Error('Service unavailable');
+                    }
                     
                     var response = xhr.responseText
                         ? eval("(" + xhr.responseText + ")")
                         : {};
                         
                     (response.error == 1)
-                        ? self.onerror.call(self, response)
-                        : self.onsuccess.call(self, response);
+                        ? self.options.onerror.call(self, response)
+                        : self.options.onsuccess.call(self, response);
                         
                 }
                 catch(e) {
-                    self.onerror.call(self, e);
+                    self.options.onerror.call(self, e);
                 }
                 
-                self.onafterupload.call(self);
+                self.options.onafterupload.call(self);
             };
 
             xhr.upload.onprogress = function(e) {
-                self.onprogress.call(self, e.loaded, e.total);
+                this.options.onprogress.call(self, e.loaded, e.total);
             };
 
             xhr.open("POST", uri, true);
@@ -228,16 +165,16 @@
                         : {};
 
                     (response.error == 1)
-                        ? self.onerror.call(self, response)
-                        : self.onsuccess.call(self, response);
+                        ? self.options.onerror.call(self, response)
+                        : self.options.onsuccess.call(self, response);
                 }
                 catch(e)
                 {
-                    self.onerror.call(self, e);
+                    self.options.onerror.call(self, e);
                     
                 }
                 
-                self.onafterupload.call(self);
+                self.options.onafterupload.call(self);
 
                 $iframe.remove();
                 $form.remove();
@@ -256,7 +193,7 @@
                         switch(response.state)
                         {
                             case 'uploading':
-                                self.onprogress.call(self, response.received, response.size);
+                                self.options.onprogress.call(self, response.received, response.size);
                                 setTimeout(updateProgress, 5000);
                                 break;
                         }
