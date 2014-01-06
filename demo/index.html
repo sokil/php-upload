@@ -1,0 +1,131 @@
+<html>
+    <head>
+        <title>Demo of php-upload library usage.</title>
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+        <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+        
+        <script type="text/javascript" src="../js/uploader.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            
+            <h1>Example</h1>
+
+            <form>
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" name="url" class="form-control" value="" />
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button">Upload</button>
+                            <input type="file" id="cmdUploadBannerImage"/>
+                        </span>
+                    </div>
+                    <div class="progress" style="display: none;">
+                        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                </div>
+                <div style="clear: both;"></div>
+            </form>
+            
+            <script type="text/javascript">
+                $('#cmdUploadBannerImage').uploader({
+                    uploadHandlerUrl: 'index.html',
+                    uploadHandlerParams: function() {
+                        return {additionalParam: 'additionalValue'};
+                    },
+                    onsuccess: function(response) {
+                        console.log(response);
+                    },
+                    onerror: function(response) {
+                        console.log(response);
+                    },
+                    onprogress: function(loaded, total) {
+                        var persents = Math.ceil(loaded / total * 100);
+                        var $progress = $('#cmdUploadBannerImage')
+                            .closest('.form-group')
+                            .find('.progress')
+                            .show();
+
+                        $progress.find('.progress-bar')
+                            .css({width: persents + "%"})
+                            .text(persents + '%');
+
+                        if(100 === persents) {
+                            setTimeout(function() {
+                                $progress.hide();
+                                $progress.find('.progress-bar')
+                                    .css({width: "0%"})
+                                    .text('0%');
+                            }, 800);
+                        }
+                    }
+                });
+            </script>
+            
+            <h1>1. Add JavaScript library</h1>
+<pre>
+&ltscript type="text/javascript" src="../js/uploader.js"&gt;&lt;/script&gt;
+</pre>
+
+            <h1>2. Add Twitter Bootstrap markup</h1>
+
+            <p>Required only &lt;input type="file" /&gt; element.</p>
+<pre>
+&lt;form&gt;
+    &lt;div class="form-group"&gt;
+        &lt;label class="col-sm-2 control-label"&gt;URL&lt;/label&gt;
+        &lt;div class="col-sm-5"&gt;
+            &lt;div class="input-group"&gt;
+                &lt;input type="text" name="url" class="form-control" value="" /&gt;
+                &lt;span class="input-group-btn"&gt;
+                    &lt;button class="btn btn-default" type="button"&gt;Upload&lt;/button&gt;
+                    <b>&lt;input type="file" id="cmdUploadBannerImage"/&gt;</b>
+                &lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div class="progress top-space" style="display: none;"&gt;
+                &lt;div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"&gt;0%&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/form&gt;
+</pre>
+
+            <h1>3. Add JavaScript</h1>
+            
+<pre>
+&lt;script type="text/javascript"&gt;
+    $('#cmdUploadBannerImage').uploader({
+    uploadHandlerUrl: '/path-to-send-file',
+    uploadHandlerParams: function() {
+        return {additionalParam: 'additionalValue'};
+    },
+    onprogress: function(loaded, total) {
+        var persents = Math.ceil(loaded / total * 100);
+        var $progress = $('#cmdUploadBannerImage')
+            .closest('.form-group')
+            .find('.progress')
+            .show();
+
+        $progress.find('.progress-bar')
+            .css({width: persents + "%"})
+            .text(persents + '%');
+
+        if(100 === persents) {
+            setTimeout(function() {
+                $progress.hide();
+                $progress.find('.progress-bar')
+                    .css({width: "0%"})
+                    .text('0%');
+            }, 800);
+        }
+    }
+});
+&lt;/script&gt;
+</pre>
+
+        </div>
+    </body>
+</html>

@@ -90,18 +90,18 @@
                 throw new Error('XMLHttpRequest do not support file upload');
             }
             
-            file = this.fileInput.get(0).files[0];          
-            uri = this._getRequestUri({f: file.name});
+            var file = this.fileInput.get(0).files[0];          
+            var uri = this._getRequestUri({f: file.name});
             
             var self = this;
             xhr.onreadystatechange = function() {
-                if (xhr.readyState != 4) {
+                if (xhr.readyState !== 4) {
                     return;
                 }
                 
                 try {
-                    if(xhr.status != 200) {
-                        throw new Error('Service unavailable');
+                    if(xhr.status !== 200) {
+                        throw new Error('Server returns error code ' + xhr.status);
                     }
                     
                     var response = xhr.responseText
@@ -114,7 +114,7 @@
                         
                 }
                 catch(e) {
-                    self.options.onerror.call(self, e);
+                    self.options.onerror.call(self, e.message);
                 }
                 
                 self.options.onafterupload.call(self);
@@ -135,8 +135,8 @@
         _iframeUpload: function()
         {
             // generate X-Progress-ID
-            uuid = "";
-            for (i = 0; i < 32; i++) {
+            var uuid = "";
+            for (var i = 0; i < 32; i++) {
                 uuid += Math.floor(Math.random() * 16).toString(16);
             }
             
