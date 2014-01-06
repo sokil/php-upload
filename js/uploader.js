@@ -121,7 +121,7 @@
             };
 
             xhr.upload.onprogress = function(e) {
-                this.options.onprogress.call(self, e.loaded, e.total);
+                self.options.onprogress.call(self, e.loaded, e.total);
             };
 
             xhr.open("POST", uri, true);
