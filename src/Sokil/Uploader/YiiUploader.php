@@ -30,10 +30,10 @@ class YiiUploader extends Uploader implements \IApplicationComponent
      */
     public function registerScripts()
     {
-        $path = Yii::app()->getAssetManager()
+        $path = \Yii::app()->getAssetManager()
             ->publish(__DIR__ . '/../js/');
         
-        Yii::app()->getClientScript()
+        \Yii::app()->getClientScript()
             ->registerScriptFile($path . '/uploader.js');
         
         return $this;
