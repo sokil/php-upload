@@ -1,0 +1,299 @@
+(function($) {
+
+    $.fn.uploader = function(options)
+    {        
+        if(typeof options !== 'object') {
+            return $.data(this, 'selfInstance');
+        }
+        
+        // config
+        options = $.extend({}, {
+            transport:              null,   // set upload transport
+            progressHandlerUrl:     null,   // only for iframe
+            uploadHandlerUrl:       null,
+            uploadHandlerParams:    function() {},
+            onsuccess:              function() {},
+            onerror:                function() {},
+            onbeforeupload:         function() {},
+            onafterupload:          function() {},
+            onprogress:             function() {},
+            classname:              null
+        }, options);
+        
+        // init
+        $.data(this, 'selfInstance', new uploader(this, options));
+    };
+
+    function uploader(fileInput, options)
+    {
+        var self = this;
+        
+        this.fileInput = fileInput;
+        this.options = options;
+
+        // container
+        this.container = this.fileInput.parent()
+            .css({
+                position: 'relative',
+                overflow: 'hidden'
+            });
+        
+        if(this.options.classname) {
+            this.container.addClass(this.options.classname);
+        }
+        
+        // button
+        this.fileInput
+            .change(function() {
+                self.uploadFile();
+            })
+            .css({
+                opacity: 0,
+                position: 'absolute',
+                zIndex: 100,
+                top: '0px',
+                right: '0px',
+                fontSize: '200px',
+                padding: '0px',
+                margin: '0px',
+                cursor: 'pointer'
+            });
+        
+        this.fileInput.appendTo(this.container);
+    }
+
+    uploader.prototype =
+    {
+        _showButton: function()
+        {
+            this.container.removeClass('progress');
+            this.progresslabel.remove();
+            this.progressbar.remove();
+            this.progressbarback.remove();
+        },
+        
+        _showProgress: function()
+        {
+            this.container.addClass('progress');
+            
+            this.progressbarback = $('<div class="progressbarback"></div>').appendTo(this.container);
+            this.progressbar = $('<div class="progressbar"></div>').appendTo(this.container);
+            this.progresslabel = $('<div class="progresslabel">0%</div>').appendTo(this.container);
+        },
+        
+        onbeforeupload: function()
+        {
+            return this.options.onbeforeupload.call(this);            
+        },
+        
+        onafterupload: function()
+        {
+            this.options.onafterupload.call(this);
+        },
+
+        onprogress: function(current, total)
+        {
+            this.options.onprogress.call(this, current, total);
+            
+            var currentInMB = Math.round(current / 1024 / 1024);
+            var totalInMB = Math.round(total / 1024 / 1024);
+            
+            var persents = Math.round(currentInMB / totalInMB * 100) + '%';
+            
+            this.progresslabel.text(persents + ' (' + currentInMB + '/' + totalInMB + ' MB)');
+            this.progressbar.css({width: persents});
+        },
+        
+        onsuccess: function(response)
+        {
+            this.progresslabel.text('100%');
+            this.progressbar.css({width: '100%'});
+            
+            var self = this;
+            setTimeout(function() {
+                self._showButton();
+                self.options.onsuccess.call(this, response);
+            }, 100);
+        },
+        
+        onerror: function(error)
+        {
+            this.options.onerror.call(this);
+            
+            this._showButton();
+            
+            alert('errorMessage' in error ? error.errorMessage : error);
+        },
+
+        uploadFile: function()
+        {
+            if(this.onbeforeupload.call(this) == false)
+                return;
+            
+            this._showProgress();
+            
+            if(this.options.transport)
+            {
+                this['_' + this.options.transport + 'Upload']();
+            }
+            else
+            {
+                try
+                {
+                    this._xhrUpload();
+                }
+                catch(e)
+                {
+                    this._iframeUpload();
+                }                
+            }
+        },
+
+        _xhrUpload: function()
+        {            
+            var xhr = new XMLHttpRequest();
+            if(!('upload' in xhr))
+                throw new Error('XMLHttpRequest do not support file upload');
+
+            file = this.fileInput.get(0).files[0];          
+            uri = this._getRequestUri({f: file.name});
+            
+            var self = this;
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState != 4)
+                    return;
+                
+                try {
+                    if(xhr.status != 200)
+                        throw new Error('Service unavailable');
+                    
+                    var response = xhr.responseText
+                        ? eval("(" + xhr.responseText + ")")
+                        : {};
+                        
+                    (response.error == 1)
+                        ? self.onerror.call(self, response)
+                        : self.onsuccess.call(self, response);
+                        
+                }
+                catch(e) {
+                    self.onerror.call(self, e);
+                }
+                
+                self.onafterupload.call(self);
+            };
+
+            xhr.upload.onprogress = function(e) {
+                self.onprogress.call(self, e.loaded, e.total);
+            };
+
+            xhr.open("POST", uri, true);
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            xhr.setRequestHeader("X-File-Name", encodeURIComponent(file.fileName));
+            xhr.setRequestHeader("Content-Type", "application/octet-stream");
+            xhr.send(file); 
+            
+        },
+
+        _iframeUpload: function()
+        {
+            // generate X-Progress-ID
+            uuid = "";
+            for (i = 0; i < 32; i++) {
+                uuid += Math.floor(Math.random() * 16).toString(16);
+            }
+            
+            // prepare request uri
+            var requestUri = this._getRequestUri({
+                'X-Progress-ID': uuid
+            });
+            
+            // create iframe
+            var $iframe = $('<iframe src="javascript:void(0);" style="display:none;" name="iframeUpload"></iframe>').appendTo(document.body);
+            var $form = $('<form method="post" enctype="multipart/form-data" action="' +requestUri + '" target="iframeUpload" style="display:none;"></form>').appendTo(document.body);
+            
+            // move file input to iframe form
+            $(this.fileInput).attr('name', 'f').appendTo($form);
+
+            // add clean file input to old location
+            this.fileInput = $('<input type="file" />').appendTo(this.fileInput.parent());
+
+            var self = this;
+            $iframe.load(function() {
+                try
+                {
+                    var json = $iframe.contents().text();
+                    var response = json
+                        ? eval("(" + json + ")")
+                        : {};
+
+                    (response.error == 1)
+                        ? self.onerror.call(self, response)
+                        : self.onsuccess.call(self, response);
+                }
+                catch(e)
+                {
+                    self.onerror.call(self, e);
+                    
+                }
+                
+                self.onafterupload.call(self);
+
+                $iframe.remove();
+                $form.remove();
+            });
+            
+            
+            // get progress from nginx upload progress module
+            var updateProgress = function() {              
+                $.get(
+                    self.options.progressHandlerUrl,
+                    {'X-Progress-ID': uuid},
+                    function(responseText) {
+                        
+                        var response = eval(responseText);
+                        
+                        switch(response.state)
+                        {
+                            case 'uploading':
+                                self.onprogress.call(self, response.received, response.size);
+                                setTimeout(updateProgress, 5000);
+                                break;
+                        }
+                            
+                    });                
+            };
+            
+            setTimeout(updateProgress, 1000);
+            
+            // submit form
+            $form.submit();
+        },
+
+        _getRequestUri: function(additionalParams)
+        {
+            var uri = this.options.uploadHandlerUrl + '';
+
+            var queryString = [];
+
+            var params = this.options.uploadHandlerParams();
+            for(var key in params) {
+                queryString.push(key + '=' + encodeURIComponent(params[key]));
+            }
+            
+            if(typeof additionalParams !== 'undefined') {
+                for(key in additionalParams) {
+                    queryString.push(key + '=' + encodeURIComponent(additionalParams[key]));
+                }
+            }
+
+            if(queryString !== '') {
+                uri += '?' + queryString.join('&');
+            }
+
+            return uri;
+        }
+
+    };
+
+})(jQuery);
