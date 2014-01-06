@@ -1,5 +1,7 @@
 <?php
 
+namespace Sokil\Uploader;
+
 class Uploader
 {
     private $_supportedFormats = array();
