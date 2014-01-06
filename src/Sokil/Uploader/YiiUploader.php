@@ -2,7 +2,7 @@
 
 namespace Sokil\Uploader;
 
-class YiiUploader extends Uploader implements IApplicationComponent
+class YiiUploader extends Uploader implements \IApplicationComponent
 {
     private $_initialized = false;
     
