@@ -17,7 +17,7 @@
             onerror:                function() {},
             onbeforeupload:         function() {},
             onafterupload:          function() {},
-            onprogress:             function() {},
+            onprogress:             function() {}
         }, options);
         
         // init
