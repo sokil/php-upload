@@ -22,16 +22,18 @@ namespace Sokil\Uploader\Transport;
  * 
  *  upload_progress {UPLOAD_PROGRESS_NAME} 5m;
  * 
- *  location @upload {
+ *  # php handler which execute requests to php files
+ *  location @php {
  *      fastcgi_pass 127.0.0.1:9000;
  *      fastcgi_param SCRIPT_FILENAME $document_root/index.php;
  *      include /usr/local/etc/nginx/fastcgi_params;
  *  }
  *  
+ *  # location which handles upload and pass params of upload to php handler
  *  location /upload {
  *      client_max_body_size 20000m;
  *  
- *      upload_pass @upload;
+ *      upload_pass @php;
  *      upload_store {PATH_TO_STORAGE_DIR};
  *      upload_pass_args on;
  *      upload_max_file_size 0;
@@ -45,6 +47,7 @@ namespace Sokil\Uploader\Transport;
  *      track_uploads {UPLOAD_PROGRESS_NAME} 5s;
  *  }
  * 
+ *  # upload progress location, which returns state of upload
  *  location /uploadprogress {
  *      report_uploads {UPLOAD_PROGRESS_NAME};
  *  }
