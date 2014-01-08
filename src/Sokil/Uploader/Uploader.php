@@ -51,6 +51,11 @@ class Uploader
         return $this;
     }
     
+    public function getSupportedFormats()
+    {
+        return $this->_supportedFormats;
+    }
+    
     public function renameOnFileExistance()
     {
         $this->_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_RENAME;
