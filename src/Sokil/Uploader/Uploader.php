@@ -141,8 +141,11 @@ class Uploader
             $targetDir = $this->getDefaultUploadDirectory();
         }
         elseif(!file_exists($targetDir)) {
-            mkdir($targetDir, $this->_dirPermission, true);
+            mkdir($targetDir, $this->_dirPermission, true);    
         }
+        
+        // remove relative sections
+        $targetDir = realpath($targetDir);
         
         // get original basename
         $originalBaseName = $transport->getOriginalBaseName();

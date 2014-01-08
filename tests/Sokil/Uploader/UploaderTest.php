@@ -128,4 +128,33 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         
         unlink($expectedPath);
     }
+    
+    public function testUploadToRelativelySpecifiedDir()
+    {
+        $originalBaseName = 'originalBaseName.ext';
+        $fileSize = filesize(__FILE__);
+        
+        $targetDir = sys_get_temp_dir() . '/test_dir';
+        
+        $targetFileName = 'uploadedTestFile';
+    
+        $expectedPath = $targetDir . '/' . $targetFileName . '.ext';
+        
+        // define environmanet
+        $_GET['f'] = $originalBaseName;
+        $_SERVER['CONTENT_LENGTH'] = $fileSize;
+
+        // upload to defined dir and change file name
+        $status = $this->_uploader->upload($targetDir . '/./', $targetFileName);
+        
+        $this->assertEquals(array(
+            'path'      => $expectedPath,
+            'size'      => $fileSize,
+            'extension' => 'ext',
+            'original'  => 'originalBaseName.ext'
+        ), $status);
+        
+        unlink($expectedPath);
+        rmdir($targetDir);
+    }
 }
