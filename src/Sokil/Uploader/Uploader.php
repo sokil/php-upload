@@ -2,18 +2,45 @@
 
 namespace Sokil\Uploader;
 
+use \Sokil\Uploader\Transport\AbstractTransport;
+
 class Uploader
 {
+    const FILE_EXISTANCE_BEHAVIOR_RENAME    = 0;
+    const FILE_EXISTANCE_BEHAVIOR_REPLACE   = 1;
+    
     private $_supportedFormats = array();
     
-    private $_formFileFieldName = 'f';
+    private $_fieldName = 'f';
     
     private $_dirPermission = 0777;
+    
+    private $_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
+    
+    /**
+     *
+     * @var \Sokil\Uploader\Transport\AbstractTransport
+     */
+    private $_transport;
 
     public function __construct($options = array())
     {
-        if(isset($options['supported_formats'])) {
-            $this->setSupportedFormats($options['supported_formats']);
+        // supported formats option
+        if(isset($options['supportedFormats'])) {
+            $this->setSupportedFormats($options['supportedFormats']);
+        }
+        
+        // file existence behavior option
+        if(isset($options['fileExistanceBehavior'])) {
+            switch($options['fileExistanceBehavior']) {
+                case self::FILE_EXISTANCE_BEHAVIOR_RENAME:
+                    $this->renameOnFileExistance();
+                    break;
+                default:
+                case self::FILE_EXISTANCE_BEHAVIOR_REPLACE:
+                    $this->replaceOnFileExistance();
+                    break;
+            }
         }
     }
     
@@ -23,151 +50,136 @@ class Uploader
 
         return $this;
     }
-
-    public function upload($targetDir = null)
+    
+    public function renameOnFileExistance()
     {
-        if(isset($_FILES[$this->_formFileFieldName])) {
-            // iframe upload
-            $file = $this->_formUpload($targetDir);
-        }
-        elseif(isset($_POST[$this->_formFileFieldName . '_tmp_name'])) {
-            // iframe througn nginx's UploadModule
-            $file = $this->_formThroughNginxUpload($targetDir);
-            
-        }
-        elseif(isset($_GET[$this->_formFileFieldName])) {
-            // Ajax upload
-            $file = $this->_xhrUpload($targetDir);
-        }
-        else {
-            throw new \Exception('No file');
-        }
-
-        return $file;
-    }
-
-    private function _xhrUpload($targetDir = null)
-    {
-        if(empty($_SERVER['CONTENT_LENGTH'])) {
-            throw new \Exception('No file');
-        }
-
-        $originalFileName = $_GET[$this->_formFileFieldName];
-        
-        // test if format supported
-        $ext = strtolower(pathinfo($originalFileName, PATHINFO_EXTENSION));
-        if(count($this->_supportedFormats) && !in_array($ext, $this->_supportedFormats)) {
-            throw new \Exception('File not allowed');
-        }
-        
-        // prepare resources
-        $stream = fopen('php://input', 'r');
-
-        $tmpDir = ini_get('upload_tmp_dir');
-        
-        $tmpFileName = tempnam($tmpDir, 'xhr');
-        chmod($tmpFileName, 0666);
-        
-        $tmpFile = fopen($tmpFileName, 'w+');
-
-        // move stream
-        $size = stream_copy_to_stream($stream, $tmpFile);
-        if($size !== (int) $_SERVER['CONTENT_LENGTH']) {
-            throw new \Exception('Partial upload. Expected ' . $_SERVER['CONTENT_LENGTH'] . ', found ' . $size);
-        }
-        
-        fclose($stream);
-        fclose($tmpFile);
-
-        if(is_null($targetDir)) {
-            $targetPath = $tmpFileName;
-        }
-        else {
-            if(!file_exists($targetDir)) {
-                mkdir($targetDir, $this->_dirPermission, true);
-            }
-
-            $targetFileName = pathinfo($originalFileName, PATHINFO_BASENAME);
-            $targetPath = $targetDir . '/' . $targetFileName;
-        
-            copy($tmpFileName, $targetPath);
-            unlink($tmpFileName);
-        }
-
-        return array(
-            'path'      => $targetPath,
-            'size'      => $size,
-            'extension' => $ext,
-            'original'  => $originalFileName
-        );
-    }
-
-    public function _formUpload($targetDir = null)
-    {
-        $file = $_FILES[$this->_formFileFieldName];
-
-        if($file['error'] !== UPLOAD_ERR_OK) {
-            throw new \Exception($file['error']);
-        }
-
-        // test if format supported
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if(count($this->_supportedFormats) && !in_array($ext, $this->_supportedFormats)) {
-            throw new Core_Uploader_FileNotAllowedException();
-        }
-
-        if(is_null($targetDir)) {
-            $targetPath = $file['tmp_name'];
-        }
-        else {
-            // move file
-            if(!file_exists($targetDir)) {
-                mkdir($targetDir, $this->_dirPermission, true);
-            }
-            
-            $targetPath = $targetDir . '/' . $file['name'];
-            move_uploaded_file($file['tmp_name'], $targetPath);
-        }
-
-        return array(
-            'path'      => $targetPath,
-            'size'      => $file['size'],
-            'extension' => $ext,
-            'original'  => $file['name']
-        );
+        $this->_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_RENAME;
+        return $this;
     }
     
-    public function _formThroughNginxUpload($targetDir = null)
+    public function replaceOnFileExistance()
     {
-        $fileName       = $_POST[$this->_formFileFieldName . '_name'];
-        $fileTempName   = $_POST[$this->_formFileFieldName . '_tmp_name'];
-        $fileType       = $_POST[$this->_formFileFieldName . '_type'];
-        $fileSize       = $_POST[$this->_formFileFieldName . '_size'];
+        $this->_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
+        return $this;
+    }
+
+    /**
+     * Get transport. If no transport specified by self::setTransport(),
+     * system will try to detect in automatically
+     * 
+     * @return \Sokil\Uploader\Transport\AbstractTransport
+     * @throws \Exception
+     */
+    protected function getTransport()
+    {
+        if($this->_transport) {
+            return $this->_transport;
+        }
+        
+        // iframe upload
+        if(isset($_FILES[$this->_fieldName])) {
+            $transportName = 'Iframe';
+        }
+        // iframe througn nginx's UploadModule
+        elseif(isset($_POST[$this->_fieldName . '_tmp_name'])) {
+            $transportName = 'Nginx';
+        }
+        // Ajax upload
+        elseif(isset($_GET[$this->_fieldName])) {
+            $transportName = 'Xhr';
+        }
+        else {
+            throw new \Exception('Unknown transport');
+        }
+        
+        $transportClassName = '\\Sokil\\Uploader\\Transport\\' . $transportName;
+        
+        /* @var $transport \Sokil\Uploader\Transport\AbstractTransport */
+        $this->_transport = new $transportClassName($this->_fieldName);
+        
+        return $this->_transport;
+    }
+    
+    /**
+     * Specify user defined transport class
+     * 
+     * @param \Sokil\Uploader\Transport\AbstractTransport $transport
+     * @return \Sokil\Uploader\Uploader
+     */
+    public function setTransport(AbstractTransport $transport)
+    {
+        $this->_transport = $transport;
+        return $this;
+    }
+    
+    public function getDefaultUploadDirectory()
+    {
+        // get configured upload dir frpm php.ini
+        $tempDir = ini_get('upload_tmp_dir');
+            
+        // upload temp dir not configured - use system default
+        if(!$tempDir) {
+            $tempDir = sys_get_temp_dir();
+        }
+        
+        return $tempDir;
+    }
+    
+    /**
+     * 
+     * @param string $targetDir Dir to store file. If omited - store in php's upload_tmp_dir
+     * @param string $newFileName New file name. If omited - use original filename
+     * @return array uploaded file metadata
+     * @throws \Exception
+     */
+    public function upload($targetDir = null, $targetFileName = null)
+    {
+        $transport = $this->getTransport();
+        
+        // get target dir
+        if(!$targetDir) {
+            $targetDir = $this->getDefaultUploadDirectory();
+        }
+        elseif(!file_exists($targetDir)) {
+            mkdir($targetDir, $this->_dirPermission, true);
+        }
+        
+        // get original basename
+        $originalBaseName = $transport->getOriginalBaseName();
         
         // test if format supported
-        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($originalBaseName, PATHINFO_EXTENSION));
         if(count($this->_supportedFormats) && !in_array($ext, $this->_supportedFormats)) {
             throw new \Exception('File not allowed');
         }
-
-        if(is_null($targetDir)) {
-            $targetPath = $fileTempName;
+        
+        // get target file name
+        if(!$targetFileName) {
+            $targetFileName = pathinfo($originalBaseName, PATHINFO_FILENAME);
         }
-        else {
-            // move file
-            if(!file_exists($targetDir)) {
-                mkdir($targetDir, $this->_dirPermission, true);
+        
+        /**
+         * Сheck target path existance
+         */
+        
+        $targetPath = $targetDir . '/' . $targetFileName . '.' . $ext;
+        
+        // rename file
+        if(self::FILE_EXISTANCE_BEHAVIOR_RENAME === $this->_fileExistanceBehavior) {
+            $i = 0;
+            while(false === ($targetFileStream = @fopen($targetPath, 'x'))) {
+                $targetPath = $targetDir . '/' . $targetFileName . ++$i . '.' . $ext;
             }
-            
-            $targetPath = $targetDir . '/' . $fileName;
-            rename($fileTempName, $targetPath);
+            fclose($targetFileStream);
         }
-
+        
+        $transport->upload($targetPath);
+        
         return array(
             'path'      => $targetPath,
-            'size'      => $fileSize,
+            'size'      => $transport->getFileSize(),
             'extension' => $ext,
-            'original'  => $fileName
+            'original'  => $originalBaseName
         );
     }
 }
