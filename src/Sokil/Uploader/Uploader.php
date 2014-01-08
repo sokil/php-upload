@@ -22,6 +22,8 @@ class Uploader
      * @var \Sokil\Uploader\Transport\AbstractTransport
      */
     private $_transport;
+    
+    private $_lastUploadStatus;
 
     public function __construct($options = array())
     {
@@ -183,11 +185,18 @@ class Uploader
         
         $transport->upload($targetPath);
         
-        return array(
+        $this->_lastUploadStatus = array(
             'path'      => $targetPath,
             'size'      => $transport->getFileSize(),
             'extension' => $ext,
             'original'  => $originalBaseName
         );
+        
+        return $this;
+    }
+    
+    public function getLastUploadStatus()
+    {
+        return $this->_lastUploadStatus;
     }
 }
