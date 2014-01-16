@@ -148,7 +148,9 @@ class Uploader
             $targetDir = $this->getDefaultUploadDirectory();
         }
         elseif(!file_exists($targetDir)) {
+            $oldUmast = umask(0);
             mkdir($targetDir, $this->_dirPermission, true);    
+            umask($oldUmast);
         }
         
         // remove relative sections
