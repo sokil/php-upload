@@ -14,7 +14,8 @@
             uploadHandlerParams     : function() {},
             classname               : null,
             onsuccess               : function(response) {},
-            onerror                 : function(response) {},
+            onerror                 : function(message) {},
+            oninvalidfile           : function(code) {},
             onbeforeupload          : function() {},
             onafterupload           : function() {},
             onprogress              : function(loaded, total) {},
@@ -66,6 +67,9 @@
 
     uploader.prototype =
     {
+        VALIDATE_ERROR_SIZE     : 0,
+        VALIDATE_ERROR_FORMAT   : 1,
+
         // check allowed file size and format
         _validate: function() 
         {
@@ -73,7 +77,7 @@
             
             // size
             if(this.options.maxSize && file.size > this.options.maxSize) {
-                throw new Error('File size greater than allowed');
+                throw this.VALIDATE_ERROR_SIZE;
             }
             
             // format
@@ -89,7 +93,7 @@
                 }
                 
                 if(!formatAllowed) {
-                    throw new Error('Format of file not allowed');
+                    throw this.VALIDATE_ERROR_FORMAT;
                 }
             }
         },
@@ -103,8 +107,8 @@
             try {
                 this._validate();
             }
-            catch(e) {
-                this.options.onerror.call(this, e.message);
+            catch(code) {
+                this.options.oninvalidfile.call(this, code);
                 return;
             }
             
