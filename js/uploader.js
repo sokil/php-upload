@@ -105,6 +105,7 @@
             }
             catch(e) {
                 this.options.onerror.call(self, e.message);
+                return;
             }
             
             // upload
