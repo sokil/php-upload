@@ -8,16 +8,18 @@
         
         // config
         options = $.extend({}, {
-            transport:              null,   // set upload transport
-            progressHandlerUrl:     null,   // only for iframe
-            uploadHandlerUrl:       null,
-            uploadHandlerParams:    function() {},
-            classname:              null,
-            onsuccess:              function(response) {},
-            onerror:                function(response) {},
-            onbeforeupload:         function() {},
-            onafterupload:          function() {},
-            onprogress:             function(loaded, total) {}
+            transport               : null,   // set upload transport
+            progressHandlerUrl      : null,   // only for iframe
+            uploadHandlerUrl        : null,
+            uploadHandlerParams     : function() {},
+            classname               : null,
+            onsuccess               : function(response) {},
+            onerror                 : function(response) {},
+            onbeforeupload          : function() {},
+            onafterupload           : function() {},
+            onprogress              : function(loaded, total) {},
+            supportedFormats        : [],
+            maxSize                 : null
         }, options);
         
         // init
@@ -64,12 +66,43 @@
 
     uploader.prototype =
     {
+        // check allowed file size and format
+        _validate: function() 
+        {
+            var file = this.fileInput.get(0).files[0];
+            
+            // size
+            if(this.options.maxSize && file.size > this.options.maxSize) {
+                throw new Error('File size greater than allowed');
+            }
+            
+            // format
+            if(this.options.supportedFormats.length) {
+                var currentFormat = file.name.substr(file.name.lastIndexOf('.') + 1),
+                    formatAllowed = false;
+            
+                for(var i = 0; i < this.options.supportedFormats.length; i++) {
+                    if(currentFormat === this.options.supportedFormats[i]) {
+                        formatAllowed = true;
+                        break;
+                    }
+                }
+                
+                if(!formatAllowed) {
+                    throw new Error('Format of file not allowed');
+                }
+            }
+        },
+        
         uploadFile: function()
         {
             if(this.options.onbeforeupload.call(this) === false) {
                 return;
             }
             
+            this._validate();
+            
+            // upload
             if(this.options.transport) {
                 this['_' + this.options.transport + 'Upload']();
             }
@@ -90,7 +123,7 @@
                 throw new Error('XMLHttpRequest do not support file upload');
             }
             
-            var file = this.fileInput.get(0).files[0];          
+            var file = this.fileInput.get(0).files[0];
             var uri = this._getRequestUri({f: file.name});
             
             var self = this;
