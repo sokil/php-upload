@@ -104,7 +104,7 @@
                 this._validate();
             }
             catch(e) {
-                this.options.onerror.call(self, e.message);
+                this.options.onerror.call(this, e.message);
                 return;
             }
             
