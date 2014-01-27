@@ -100,7 +100,12 @@
                 return;
             }
             
-            this._validate();
+            try {
+                this._validate();
+            }
+            catch(e) {
+                this.options.onerror.call(self, e.message);
+            }
             
             // upload
             if(this.options.transport) {
