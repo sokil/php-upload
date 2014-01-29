@@ -100,10 +100,6 @@
         
         uploadFile: function()
         {
-            if(this.options.onbeforeupload.call(this) === false) {
-                return;
-            }
-            
             try {
                 this._validate();
             }
@@ -112,6 +108,9 @@
                 return;
             }
             
+            if(this.options.onbeforeupload.call(this) === false) {
+                return;
+            }
             // upload
             if(this.options.transport) {
                 this['_' + this.options.transport + 'Upload']();
