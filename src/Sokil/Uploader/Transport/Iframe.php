@@ -6,7 +6,8 @@ class Iframe extends AbstractTransport
 {
     private $_file;
     
-    public function __construct() {
+    public function __construct($fieldName) {
+        parent::__construct($fieldName);
         $this->_file = $_FILES[$this->_fieldName];
     }
     
