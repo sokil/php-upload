@@ -191,11 +191,11 @@ class Uploader
         $transport->upload($targetPath);
         
         // check MD5 hash
-        $requiredMD5 = $this->getHeader('Content-MD5');
-        if($requiredMD5) {
-            $validMD5 = base64_encode(md5_file($targetPath, true));
-            if(rtrim($requiredMD5, '=') !== rtrim($validMD5, '=')) {
-                throw new \Sokil\Uploader\Exception\WrongChecksum('MD5 sum missmatch');            
+        $expectedMD5 = $this->getHeader('Content-MD5');
+        if($expectedMD5) {
+            $actualMD5 = base64_encode(md5_file($targetPath, true));
+            if(rtrim($expectedMD5, '=') !== rtrim($actualMD5, '=')) {
+                throw new \Sokil\Uploader\Exception\WrongChecksum('MD5 sum missmatch. Expected ' . $expectedMD5 . ', actual ' . $actualMD5);            
             }
         }
         
