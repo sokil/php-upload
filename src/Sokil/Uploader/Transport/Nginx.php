@@ -62,7 +62,11 @@ class Nginx extends AbstractTransport
     }
     
     public function getOriginalBaseName() {
-        return $_POST[$this->_fieldName . '_name'];
+        if(!$this->_originalBaseName) {
+            $this->_originalBaseName = $_POST[$this->_fieldName . '_name'];
+        }
+        
+        return $this->_originalBaseName;
     }
     
     public function getFileSize() {

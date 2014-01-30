@@ -12,7 +12,10 @@ class Iframe extends AbstractTransport
     }
     
     public function getOriginalBaseName() {
-        return $this->_file['name'];
+        if(!$this->_originalBaseName) {
+            $this->_originalBaseName = $this->_file['name'];
+        }
+        return $this->_originalBaseName;
     }
     
     public function getFileSize() {

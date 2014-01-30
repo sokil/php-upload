@@ -7,7 +7,10 @@ class Xhr extends AbstractTransport
     private $_sourceStream;
     
     public function getOriginalBaseName() {
-        return empty($_GET[$this->_fieldName]) ? uniqid() : $_GET[$this->_fieldName];
+        if(!$this->_originalBaseName) {
+            $this->_originalBaseName = empty($_GET[$this->_fieldName]) ? uniqid() : $_GET[$this->_fieldName];
+        }
+        return $this->_originalBaseName;
     }
     
     public function getFileSize() {
