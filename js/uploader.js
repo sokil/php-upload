@@ -36,10 +36,11 @@
 
         // container
         this.container = this.fileInput.parent()
-            .css({
-                position: 'relative',
-                overflow: 'hidden'
-            });
+            .css({overflow: 'hidden'});
+    
+        if(this.container.css('position') === 'static') {
+            this.container.css({'position': 'relative'});
+        }
         
         if(this.options.classname) {
             this.container.addClass(this.options.classname);
