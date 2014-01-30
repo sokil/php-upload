@@ -2,6 +2,8 @@
 
 namespace Sokil\Uploader\Transport;
 
+use Sokil\Uploader\Exception;
+
 class Iframe extends AbstractTransport
 {
     private $_file;
@@ -30,7 +32,7 @@ class Iframe extends AbstractTransport
     public function upload($targetPath)
     {
         if($this->_file['error'] !== UPLOAD_ERR_OK) {
-            throw new \Exception('Upload file error #' . $this->_file['error']);
+            throw new Exception('Upload file error #' . $this->_file['error']);
         }
 
         move_uploaded_file($this->_file['tmp_name'], $targetPath);

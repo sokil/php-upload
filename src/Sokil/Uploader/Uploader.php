@@ -165,7 +165,7 @@ class Uploader
         // test if format supported
         $ext = strtolower(pathinfo($originalBaseName, PATHINFO_EXTENSION));
         if(count($this->_supportedFormats) && !in_array($ext, $this->_supportedFormats)) {
-            throw new \Exception('File not allowed');
+            throw new \Sokil\Uploader\Exception\WrongFormat('File not allowed');
         }
         
         // get target file name
@@ -195,7 +195,7 @@ class Uploader
         if($requiredMD5) {
             $validMD5 = base64_encode(md5_file($targetPath, true));
             if(rtrim($requiredMD5, '=') !== rtrim($validMD5, '=')) {
-                throw new \Exception('MD5 sum missmatch');            
+                throw new \Sokil\Uploader\Exception\WrongChecksum('MD5 sum missmatch');            
             }
         }
         
