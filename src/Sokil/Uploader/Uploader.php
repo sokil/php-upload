@@ -184,6 +184,16 @@ class Uploader
         
         $transport->upload($targetPath);
         
+        // check MD5 hash
+        $requiredMD5 = $this->getHeader('Content-MD5');
+        if($requiredMD5) {
+            $validMD5 = base64_encode(md5_file($targetPath, true));
+            if(rtrim($requiredMD5, '=') !== rtrim($validMD5, '=')) {
+                throw new \Exception('MD5 sum missmatch');            
+            }
+        }
+        
+        // set upload status
         $this->_lastUploadStatus = array(
             'path'      => $targetPath,
             'size'      => $transport->getFileSize(),
@@ -198,4 +208,30 @@ class Uploader
     {
         return $this->_lastUploadStatus;
     }
+    
+    protected function getHeader($headerName, $default = null)
+    {
+        $serverVarKey = 'HTTP_' . strtoupper(str_replace('-', '_', $headerName));
+        if(isset($_SERVER[$serverVarKey])) {
+            return $_SERVER[$serverVarKey];
+        }
+
+        if(function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+
+            if(isset($headers[$headerName])) {
+                return $headers[$headerName];
+            }
+
+            $headerName = strtolower($headerName);
+            foreach($headers as $key => $value) {
+                if(strtolower($key) == $headerName) {
+                    return $value;
+                }
+            }
+        }
+
+        return $default;
+    }
+    
 }
