@@ -92,11 +92,8 @@ class Uploader
             $transportName = 'Nginx';
         }
         // Ajax upload
-        elseif(isset($_GET[$this->_fieldName])) {
-            $transportName = 'Xhr';
-        }
         else {
-            throw new \Exception('Unknown transport');
+            $transportName = 'Xhr';
         }
         
         $transportClassName = '\\Sokil\\Uploader\\Transport\\' . $transportName;
