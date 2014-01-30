@@ -129,6 +129,12 @@ class Uploader
         return $tempDir;
     }
     
+    public function setOriginalBaseName($baseName)
+    {
+        $this->getTransport()->setOriginalBaseName($baseName);
+        return $this;
+    }
+    
     /**
      * 
      * @param string $targetDir Dir to store file. If omited - store in php's upload_tmp_dir
