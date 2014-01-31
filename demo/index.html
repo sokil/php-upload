@@ -30,9 +30,12 @@
                         <input type="radio" name="transport" value="nginx" /> Iframe + Nginx Upload Module
                     </label>
                 </div>
-                <div>
+                <div style="margin-bottom: 10px;">
                     <button class="btn btn-default" type="button">Upload</button>
                     <input type="file" id="fileInput" />
+                </div>
+                <div class="progress" style="display: none;">
+                    <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
                 </div>
             </form>
             
@@ -56,8 +59,8 @@
                     },
                     onprogress: function(loaded, total) {
                         var persents = Math.ceil(loaded / total * 100);
-                        var $progress = $('#cmdUploadBannerImage')
-                            .closest('.form-group')
+                        var $progress = $('#fileInput')
+                            .closest('form')
                             .find('.progress')
                             .show();
 
