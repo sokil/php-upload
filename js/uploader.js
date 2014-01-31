@@ -118,9 +118,6 @@
         _xhrUpload: function()
         {            
             var xhr = new XMLHttpRequest();
-            if(!('upload' in xhr)) {
-                throw new Error('XMLHttpRequest do not support file upload');
-            }
             
             var file = this.fileInput.get(0).files[0];
             var uri = this._getRequestUri({f: file.name});
@@ -152,9 +149,12 @@
                 self.options.onafterupload.call(self);
             };
 
-            xhr.upload.onprogress = function(e) {
-                self.options.onprogress.call(self, e.loaded, e.total);
-            };
+            if('upload' in xhr) {
+                xhr.upload.onprogress = function(e) {
+                    self.options.onprogress.call(self, e.loaded, e.total);
+                };
+            }
+            
 
             xhr.open("POST", uri, true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
