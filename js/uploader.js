@@ -1,37 +1,9 @@
 (function($) {
 
-    $.fn.uploader = function(options)
-    {        
-        if(typeof options !== 'object') {
-            return $.data(this, 'selfInstance');
-        }
-        
-        // config
-        options = $.extend({}, {
-            transport               : null,   // set upload transport
-            progressHandlerUrl      : null,   // only for iframe
-            uploadHandlerUrl        : null,
-            uploadHandlerParams     : function() {},
-            classname               : null,
-            onsuccess               : function(response) {},
-            onerror                 : function(message) {},
-            oninvalidfile           : function(code) {},
-            onbeforeupload          : function() {},
-            onafterupload           : function() {},
-            onprogress              : function(loaded, total) {},
-            supportedFormats        : [],
-            maxSize                 : null
-        }, options);
-        
-        // init
-        $.data(this, 'selfInstance', new uploader(this, options));
-    };
-
-    function uploader(fileInput, options)
-    {
+    function uploader($element, options) {
         var self = this;
         
-        this.fileInput = fileInput;
+        this.fileInput = $element;
         this.options = options;
 
         // container
@@ -66,11 +38,26 @@
         this.fileInput.appendTo(this.container);
     }
 
-    uploader.prototype =
-    {
+    uploader.prototype = {
+        
         VALIDATE_ERROR_SIZE     : 0,
         VALIDATE_ERROR_FORMAT   : 1,
 
+        setOption: function(name, value) {
+            this.options[name] = value;
+            return this;
+        },
+        
+        setTransport: function(transport) {
+            this.options['transport'] = transport;
+            return this;
+        },
+        
+        setUploadHandlerUrl: function(url) {
+            this.options['uploadHandlerUrl'] = url;
+            return this;
+        },
+        
         // check allowed file size and format
         _validate: function() 
         {
@@ -124,6 +111,8 @@
                     this._iframeUpload();
                 }                
             }
+            
+            return this;
         },
 
         _xhrUpload: function()
@@ -147,14 +136,14 @@
                         throw new Error('Server returns error code ' + xhr.status);
                     }
                     
-                    var response = xhr.responseText
-                        ? eval("(" + xhr.responseText + ")")
-                        : {};
+                    var response = xhr.responseText;
+                    if(self.options.responseType === 'json') {
+                        response = response
+                            ? eval("(" + response + ")")
+                            : {};
+                    }
                         
-                    (response.error == 1)
-                        ? self.options.onerror.call(self, response)
-                        : self.options.onsuccess.call(self, response);
-                        
+                    self.options.onsuccess.call(self, response);
                 }
                 catch(e) {
                     self.options.onerror.call(self, e.message);
@@ -189,30 +178,35 @@
             });
             
             // create iframe
-            var $iframe = $('<iframe src="javascript:void(0);" style="display:none;" name="iframeUpload"></iframe>').appendTo(document.body);
-            var $form = $('<form method="post" enctype="multipart/form-data" action="' +requestUri + '" target="iframeUpload" style="display:none;"></form>').appendTo(document.body);
+            var $iframe = $('<iframe src="javascript:void(0);" style="display:none;" name="iframeUpload"></iframe>')
+                .appendTo(document.body);
+        
+            var $form = $('<form method="post" enctype="multipart/form-data" action="' + requestUri + '" target="iframeUpload" style="display:none;"/>')
+                .appendTo(document.body);
+            
+            // clone input
+            var clonedFileInput = this.fileInput.clone(true),
+                fileInputParent = this.fileInput.parent();
             
             // move file input to iframe form
             $(this.fileInput).attr('name', 'f').appendTo($form);
 
             // add clean file input to old location
-            this.fileInput = $('<input type="file" />').appendTo(this.fileInput.parent());
+            this.fileInput = clonedFileInput.appendTo(fileInputParent);
 
             var self = this;
             $iframe.load(function() {
-                try
-                {
-                    var json = $iframe.contents().text();
-                    var response = json
-                        ? eval("(" + json + ")")
-                        : {};
-
-                    (response.error == 1)
-                        ? self.options.onerror.call(self, response)
-                        : self.options.onsuccess.call(self, response);
+                try {
+                    var response = $iframe.contents().find('body').html();
+                    if(self.options.responseType === 'json') {
+                        response = response
+                            ? eval("(" + response + ")")
+                            : {};
+                    }
+                        
+                    self.options.onsuccess.call(self, response);
                 }
-                catch(e)
-                {
+                catch(e) {
                     self.options.onerror.call(self, e);
                     
                 }
@@ -274,6 +268,56 @@
             return uri;
         }
 
+    };
+    
+    
+    /**
+     * jQuery plugin
+     */
+    $.fn.uploader = function() {
+        var $element = $(this);
+        
+        // init
+        if(arguments.length && typeof arguments[0] === 'object') {
+            // config
+            var options = $.extend({}, {
+                transport               : null,   // set upload transport
+                progressHandlerUrl      : null,   // only for iframe
+                uploadHandlerUrl        : null,
+                uploadHandlerParams     : function() {},
+                classname               : null,
+                onsuccess               : function(response) {},
+                onerror                 : function(message) {},
+                oninvalidfile           : function(code) {},
+                onbeforeupload          : function() {},
+                onafterupload           : function() {},
+                onprogress              : function(loaded, total) {},
+                supportedFormats        : [],
+                maxSize                 : null,
+                responseType            : 'json'
+            }, arguments[0]);
+            
+            // init
+            $element.data('selfInstance', new uploader($element, options));
+        }
+        // configure initialised
+        else {
+            
+            // check if uploader initialised
+            var u = $element.data('selfInstance');
+            if(!u) {
+                throw new Error('Uploader not initialised');
+            }
+            
+            // return uploader object
+            if(!arguments.length) {
+                return u;
+            }
+            
+            // call Uploader method
+            u[arguments[0]].apply(u, Array.prototype.slice.call(arguments, 1));
+        }
+        
     };
 
 })(jQuery);
