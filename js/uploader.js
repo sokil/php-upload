@@ -117,12 +117,9 @@
 
         _xhrUpload: function()
         {            
-            var xhr = new XMLHttpRequest();
-            
-            var file = this.fileInput.get(0).files[0];
-            var uri = this._getRequestUri({f: file.name});
-            
             var self = this;
+            
+            var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
                 if (xhr.readyState !== 4) {
                     return;
@@ -155,7 +152,9 @@
                 };
             }
             
-
+            var file = this.fileInput.get(0).files[0];
+            var uri = this._getRequestUri({f: file.name});
+        
             xhr.open("POST", uri, true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
             xhr.setRequestHeader("X-File-Name", encodeURIComponent(file.fileName));
