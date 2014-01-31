@@ -15,11 +15,11 @@ switch($requestUri) {
     case '/upload-iframe':
     case '/upload-xhr':
     case '/upload-nginx':
-        echo '<b>$_GET:</b>' . PHP_EOL;
+        echo '<b>$_GET:</b><br/>';
         var_dump($_GET);
-        echo '<b>$_POST:</b>' . PHP_EOL;
+        echo '<b>$_POST:</b><br/>';
         var_dump($_POST);
-        echo '<b>$_FILES:</b>' . PHP_EOL;
+        echo '<b>$_FILES:</b><br/>';
         var_dump($_FILES);
         break;
 }
