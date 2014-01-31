@@ -14,7 +14,7 @@
             
             <h1>Example</h1>
 
-            <form method="POST" action="/upload" id="frm">
+            <form method="POST" action="/upload-iframe" id="frm" enctype="multipart/form-data">
                 <div>
                     <label>
                         <input type="radio" name="transport" value="xhr" checked="checked" /> AJAX
@@ -39,9 +39,7 @@
                 </div>
             </form>
             
-            <pre id="status">
-                
-            </pre>
+            <div id="status"></div>
             
             <script type="text/javascript">
                 $('#fileInput').uploader({
