@@ -116,7 +116,7 @@
         },
 
         _xhrUpload: function()
-        {            
+        {
             var self = this;
             
             var xhr = new XMLHttpRequest();
@@ -153,7 +153,11 @@
             }
             
             var file = this.fileInput.get(0).files[0];
-            var uri = this._getRequestUri({f: file.name});
+            
+            var params = {};
+            params[this.options.fileInputName] = file.name;
+            
+            var uri = this._getRequestUri(params);
         
             xhr.open("POST", uri, true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
@@ -188,7 +192,7 @@
                 fileInputParent = this.fileInput.parent();
             
             // move file input to iframe form
-            $(this.fileInput).attr('name', 'f').appendTo($form);
+            $(this.fileInput).attr('name', this.options.fileInputName).appendTo($form);
 
             // add clean file input to old location
             this.fileInput = clonedFileInput.appendTo(fileInputParent);
@@ -293,7 +297,8 @@
                 onprogress              : function(loaded, total) {},
                 supportedFormats        : [],
                 maxSize                 : null,
-                responseType            : 'json'
+                responseType            : 'json',
+                fileInputName           : this.fileInput.attr('name') || 'f'
             }, arguments[0]);
             
             // init
