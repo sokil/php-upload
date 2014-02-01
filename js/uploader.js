@@ -157,7 +157,7 @@
             var params = {};
             params[this.options.fileInputName] = file.name;
             
-            var uri = this._getRequestUri(params);
+            var uri = this._buildUploadHandlerUrl(params);
         
             xhr.open("POST", uri, true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
@@ -169,16 +169,20 @@
 
         _iframeUpload: function()
         {
-            // generate X-Progress-ID
-            var uuid = "";
-            for (var i = 0; i < 32; i++) {
-                uuid += Math.floor(Math.random() * 16).toString(16);
+            // check if proggress id already in url
+            var additionalRequestParams = {};
+            if(-1 === this.options.uploadHandlerUrl.indexOf('X-Progress-ID')) {
+                // generate X-Progress-ID
+                var uuid = "";
+                for (var i = 0; i < 32; i++) {
+                    uuid += Math.floor(Math.random() * 16).toString(16);
+                }    
+                
+                additionalRequestParams['X-Progress-ID'] = uuid;
             }
             
             // prepare request uri
-            var requestUri = this._getRequestUri({
-                'X-Progress-ID': uuid
-            });
+            var requestUri = this._buildUploadHandlerUrl(additionalRequestParams);
             
             // create iframe
             var $iframe = $('<iframe src="javascript:void(0);" style="display:none;" name="iframeUpload"></iframe>')
@@ -222,23 +226,26 @@
             
             
             // get progress from nginx upload progress module
-            var updateProgress = function() {              
-                $.get(
-                    self.options.progressHandlerUrl,
-                    {'X-Progress-ID': uuid},
-                    function(responseText) {
-                        
-                        var response = eval(responseText);
-                        
-                        switch(response.state)
-                        {
-                            case 'uploading':
-                                self.options.onprogress.call(self, response.received, response.size);
-                                setTimeout(updateProgress, 5000);
-                                break;
-                        }
-                            
-                    });                
+            var updateProgress = function() {
+                
+                // append profgress id
+                var url = self.options.progressHandlerUrl;
+                if(-1 === url.indexOf('X-Progress-ID')) {
+                    url = self._appendQueryParams(url, {'X-Progress-ID': uuid});
+                }
+                
+                // get status
+                $.get(url, function(responseText) {
+                    var response = eval(responseText);
+                    switch(response.state)
+                    {
+                        case 'uploading':
+                            self.options.onprogress.call(self, response.received, response.size);
+                            setTimeout(updateProgress, 5000);
+                            break;
+                    }
+
+                });                
             };
             
             setTimeout(updateProgress, 1000);
@@ -247,32 +254,39 @@
             $form.submit();
         },
 
-        _getRequestUri: function(additionalParams)
+        _buildUploadHandlerUrl: function(additionalParams)
         {
-            var uri = this.options.uploadHandlerUrl + '';
-
-            var queryString = [];
-
             var params = this.options.uploadHandlerParams();
+            
+            if(typeof additionalParams !== 'undefined') { 
+                params = $.extend({}, params, additionalParams);
+            }
+            
+            return this._appendQueryParams(this.options.uploadHandlerUrl, params);
+        },
+        
+        _appendQueryParams: function(url, params) {
+            
+            var queryString = [],
+                queryMarkPos = url.indexOf('?');
+        
+            if(queryMarkPos >= 0) {
+                queryString = url.substr(queryMarkPos + 1).split('&');
+                url = url.substr(0, queryMarkPos);   
+            }
+
             for(var key in params) {
                 queryString.push(key + '=' + encodeURIComponent(params[key]));
             }
+
+            if(queryString.length > 0) {
+                url += '?' + queryString.join('&');
+            }
             
-            if(typeof additionalParams !== 'undefined') {
-                for(key in additionalParams) {
-                    queryString.push(key + '=' + encodeURIComponent(additionalParams[key]));
-                }
-            }
-
-            if(queryString !== '') {
-                uri += '?' + queryString.join('&');
-            }
-
-            return uri;
+            return url;
         }
 
     };
-    
     
     /**
      * jQuery plugin
@@ -298,7 +312,7 @@
                 supportedFormats        : [],
                 maxSize                 : null,
                 responseType            : 'json',
-                fileInputName           : this.fileInput.attr('name') || 'f'
+                fileInputName           : $element.attr('name') || 'f'
             }, arguments[0]);
             
             // init
