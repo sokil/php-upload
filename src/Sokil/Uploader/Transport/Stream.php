@@ -2,7 +2,7 @@
 
 namespace Sokil\Uploader\Transport;
 
-class Xhr extends AbstractTransport
+class Stream extends AbstractTransport
 {
     private $_sourceStream;
     

@@ -44,6 +44,17 @@ class Uploader
                     break;
             }
         }
+        
+        // field name
+        if(isset($options['fieldName'])) {
+            $this->setFieldName($options['fieldName']);
+        }
+    }
+    
+    public function setFieldName($fieldName)
+    {
+        $this->_fieldName = $fieldName;
+        return $this;
     }
     
     public function setSupportedFormats(array $formats)
@@ -82,26 +93,31 @@ class Uploader
         if($this->_transport) {
             return $this->_transport;
         }
-        
-        // iframe upload
-        if(isset($_FILES[$this->_fieldName])) {
-            $transportName = 'Iframe';
-        }
-        // iframe througn nginx's UploadModule
-        elseif(isset($_POST[$this->_fieldName . '_tmp_name'])) {
-            $transportName = 'Nginx';
-        }
-        // Ajax upload
-        else {
-            $transportName = 'Xhr';
-        }
-        
-        $transportClassName = '\\Sokil\\Uploader\\Transport\\' . $transportName;
+
+        $transportClassName = '\\Sokil\\Uploader\\Transport\\' . $this->getTransportName();
         
         /* @var $transport \Sokil\Uploader\Transport\AbstractTransport */
         $this->_transport = new $transportClassName($this->_fieldName);
         
         return $this->_transport;
+    }
+    
+    public function getTransportName()
+    {
+        // iframe upload
+        if(isset($_FILES[$this->_fieldName])) {
+            $transportName = 'Form';
+        }
+        // iframe througn nginx's UploadModule
+        elseif(isset($_POST[$this->_fieldName . '_tmp_name'])) {
+            $transportName = 'NginxForm';
+        }
+        // Ajax upload to input stream
+        else {
+            $transportName = 'Stream';
+        }
+        
+        return $transportName;
     }
     
     /**

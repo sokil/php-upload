@@ -4,7 +4,7 @@ namespace Sokil\Uploader\Transport;
 
 use Sokil\Uploader\Exception;
 
-class Iframe extends AbstractTransport
+class Form extends AbstractTransport
 {
     private $_file;
     

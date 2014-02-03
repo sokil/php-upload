@@ -52,7 +52,7 @@ namespace Sokil\Uploader\Transport;
  *      report_uploads {UPLOAD_PROGRESS_NAME};
  *  }
  */
-class Nginx extends AbstractTransport
+class NginxForm extends AbstractTransport
 {
     private $_file;
     

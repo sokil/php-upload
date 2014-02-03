@@ -108,14 +108,14 @@
                     this._xhrUpload();
                 }
                 catch(e) {
-                    this._iframeUpload();
+                    this._formUpload();
                 }                
             }
             
             return this;
         },
 
-        _xhrUpload: function()
+        _streamUpload: function()
         {
             var self = this;
             
@@ -161,13 +161,59 @@
         
             xhr.open("POST", uri, true);
             xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            xhr.setRequestHeader("X-File-Name", encodeURIComponent(file.fileName));
             xhr.setRequestHeader("Content-Type", "application/octet-stream");
             xhr.send(file); 
+        },
+        
+        _xhrUpload: function()
+        {
+            var self = this;
             
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== 4) {
+                    return;
+                }
+                
+                try {
+                    if(xhr.status !== 200) {
+                        throw new Error('Server returns error code ' + xhr.status);
+                    }
+                    
+                    var response = xhr.responseText;
+                    if(self.options.responseType === 'json') {
+                        response = response
+                            ? eval("(" + response + ")")
+                            : {};
+                    }
+                        
+                    self.options.onsuccess.call(self, response);
+                }
+                catch(e) {
+                    self.options.onerror.call(self, e.message);
+                }
+                
+                self.options.onafterupload.call(self);
+            };
+
+            if('upload' in xhr) {
+                xhr.upload.onprogress = function(e) {
+                    self.options.onprogress.call(self, e.loaded, e.total);
+                };
+            }
+            
+            var uri = this._buildUploadHandlerUrl(),
+                formData = new FormData();
+        
+            formData.append(this.options.fileInputName, this.fileInput.get(0).files[0]);
+            
+            // send
+            xhr.open("POST", uri, true);
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            xhr.send(formData); 
         },
 
-        _iframeUpload: function()
+        _formUpload: function()
         {
             // check if proggress id already in url
             var additionalRequestParams = {};
