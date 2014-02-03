@@ -43,17 +43,29 @@
         VALIDATE_ERROR_SIZE     : 0,
         VALIDATE_ERROR_FORMAT   : 1,
 
-        setOption: function(name, value) {
+        isCrossDomain: function() 
+        {
+            if(null !== this.options.crossDomain) {
+                return !!this.options.crossDomain;
+            }
+            
+            return (this.options.uploadHandlerUrl.indexOf(location.host) === -1);
+        },
+        
+        setOption: function(name, value)
+        {
             this.options[name] = value;
             return this;
         },
         
-        setTransport: function(transport) {
+        setTransport: function(transport)
+        {
             this.options['transport'] = transport;
             return this;
         },
         
-        setUploadHandlerUrl: function(url) {
+        setUploadHandlerUrl: function(url)
+        {
             this.options['uploadHandlerUrl'] = url;
             return this;
         },
@@ -160,8 +172,12 @@
             var uri = this._buildUploadHandlerUrl(params);
         
             xhr.open("POST", uri, true);
-            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-            xhr.setRequestHeader("Content-Type", "application/octet-stream");
+            
+            if(!this.isCrossDomain()) {
+                xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+                xhr.setRequestHeader("Content-Type", "application/octet-stream");
+            }
+            
             xhr.send(file); 
         },
         
@@ -209,7 +225,11 @@
             
             // send
             xhr.open("POST", uri, true);
-            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            
+            if(!this.isCrossDomain()) {
+                xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+            }
+            
             xhr.send(formData); 
         },
 
@@ -311,7 +331,8 @@
             return this._appendQueryParams(this.options.uploadHandlerUrl, params);
         },
         
-        _appendQueryParams: function(url, params) {
+        _appendQueryParams: function(url, params)
+        {
             
             var queryString = [],
                 queryMarkPos = url.indexOf('?');
@@ -337,13 +358,15 @@
     /**
      * jQuery plugin
      */
-    $.fn.uploader = function() {
+    $.fn.uploader = function()
+    {
         var $element = $(this);
         
         // init
         if(arguments.length && typeof arguments[0] === 'object') {
             // config
             var options = $.extend({}, {
+                crossDomain             : null,
                 transport               : null,   // set upload transport
                 progressHandlerUrl      : null,   // only for iframe
                 uploadHandlerUrl        : null,
