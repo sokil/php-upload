@@ -216,6 +216,8 @@
                 xhr.upload.onprogress = function(e) {
                     self.options.onprogress.call(self, e.loaded, e.total);
                 };
+            } else {
+                setTimeout(self._nginxUpdateProgress, 1000);
             }
             
             var uri = this._buildUploadHandlerUrl(),
@@ -289,35 +291,35 @@
                 $iframe.remove();
                 $form.remove();
             });
-            
-            
-            // get progress from nginx upload progress module
-            var updateProgress = function() {
-                
-                // append profgress id
-                var url = self.options.progressHandlerUrl;
-                if(-1 === url.indexOf('X-Progress-ID')) {
-                    url = self._appendQueryParams(url, {'X-Progress-ID': uuid});
-                }
-                
-                // get status
-                $.get(url, function(responseText) {
-                    var response = eval(responseText);
-                    switch(response.state)
-                    {
-                        case 'uploading':
-                            self.options.onprogress.call(self, response.received, response.size);
-                            setTimeout(updateProgress, 5000);
-                            break;
-                    }
 
-                });                
-            };
-            
-            setTimeout(updateProgress, 1000);
+            setTimeout(self._nginxUpdateProgress, 1000);
             
             // submit form
             $form.submit();
+        },
+        
+        // get progress from nginx upload progress module
+        _nginxUpdateProgress: function() {
+            var self = this;
+            
+            // append profgress id
+            var url = this.options.progressHandlerUrl;
+            if(-1 === url.indexOf('X-Progress-ID')) {
+                url = this._appendQueryParams(url, {'X-Progress-ID': uuid});
+            }
+
+            // get status
+            $.get(url, function(responseText) {
+                var response = eval(responseText);
+                switch(response.state)
+                {
+                    case 'uploading':
+                        this.options.onprogress.call(self, response.received, response.size);
+                        setTimeout(self._nginxUpdateProgress, 5000);
+                        break;
+                }
+
+            });                
         },
 
         _buildUploadHandlerUrl: function(additionalParams)
