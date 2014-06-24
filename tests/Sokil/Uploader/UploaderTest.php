@@ -12,7 +12,7 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         $this->_uploader = new \Sokil\Uploader\Uploader;
         
         // prepare transport
-        $transport = $this->getMock('\Sokil\Uploader\Transport\Xhr', array('getSourceStream'), array('f'));
+        $transport = $this->getMock('\Sokil\Uploader\Transport\Stream', array('getSourceStream'), array('f'));
         $transport
             ->expects($this->any())
             ->method('getSourceStream')
@@ -38,14 +38,14 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         $_SERVER['CONTENT_LENGTH'] = $fileSize;
 
         // upload to defined dir and change file name
-        $status = $this->_uploader->upload($targetDir, $targetFileName);
+        $this->_uploader->upload($targetDir, $targetFileName);
         
         $this->assertEquals(array(
             'path'      => $expectedPath,
             'size'      => $fileSize,
             'extension' => 'ext',
             'original'  => 'originalBaseName.ext'
-        ), $status);
+        ), $this->_uploader->getLastUploadStatus());
         
         unlink($expectedPath);
         rmdir($targetDir);
@@ -65,7 +65,7 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         $_SERVER['CONTENT_LENGTH'] = $fileSize;
 
         // upload to defined dir and change file name
-        $status = $this->_uploader->upload(null, $targetFileName);
+        $this->_uploader->upload(null, $targetFileName);
         
         
         $this->assertEquals(array(
@@ -73,7 +73,7 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
             'size'      => $fileSize,
             'extension' => 'ext',
             'original'  => 'originalBaseName.ext'
-        ), $status);
+        ), $this->_uploader->getLastUploadStatus());
         
         unlink($expectedPath);
     }
@@ -92,14 +92,14 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         $_SERVER['CONTENT_LENGTH'] = $fileSize;
         
         // upload to defined dir and leave original filename
-        $status = $this->_uploader->upload($targetDir);
+        $this->_uploader->upload($targetDir);
         
         $this->assertEquals(array(
             'path'      => $expectedPath,
             'size'      => $fileSize,
             'extension' => 'ext',
             'original'  => 'originalBaseName.ext'
-        ), $status);
+        ), $this->_uploader->getLastUploadStatus());
         
         unlink($expectedPath);
         rmdir($targetDir);
@@ -117,14 +117,14 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         $_SERVER['CONTENT_LENGTH'] = $fileSize;
         
         // upload to defined dir and leave original filename
-        $status = $this->_uploader->upload();
+        $this->_uploader->upload();
         
         $this->assertEquals(array(
             'path'      => $expectedPath,
             'size'      => $fileSize,
             'extension' => 'ext',
             'original'  => 'originalBaseName.ext'
-        ), $status);
+        ), $this->_uploader->getLastUploadStatus());
         
         unlink($expectedPath);
     }
@@ -145,14 +145,14 @@ class UploaderTest extends \PHPUnit_Framework_TestCase
         $_SERVER['CONTENT_LENGTH'] = $fileSize;
 
         // upload to defined dir and change file name
-        $status = $this->_uploader->upload($targetDir . '/./', $targetFileName);
+        $this->_uploader->upload($targetDir . '/./', $targetFileName);
         
         $this->assertEquals(array(
             'path'      => $expectedPath,
             'size'      => $fileSize,
             'extension' => 'ext',
             'original'  => 'originalBaseName.ext'
-        ), $status);
+        ), $this->_uploader->getLastUploadStatus());
         
         unlink($expectedPath);
         rmdir($targetDir);
