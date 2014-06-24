@@ -1,8 +1,8 @@
 <?php
 
-namespace Sokil\Uploader;
+namespace Sokil\Uploader\Adapter\Yii;
 
-class YiiUploader extends Uploader implements \IApplicationComponent
+class Factory extends \Sokil\Uploader\Factory implements \IApplicationComponent
 {
     private $_initialized = false;
     
@@ -22,16 +22,16 @@ class YiiUploader extends Uploader implements \IApplicationComponent
     {
         return $this->_initialized;
     }
-
+    
     /**
      * Register javascript and css files
      * 
      * @return \Sokil\Uploader\YiiUploader
      */
-    public function registerScripts()
+    public static function registerScripts()
     {
         $path = \Yii::app()->getAssetManager()
-            ->publish(__DIR__ . '/../../../js/');
+            ->publish(__DIR__ . '/../../../../../js/');
         
         \Yii::app()->getClientScript()
             ->registerScriptFile($path . '/uploader.js');
