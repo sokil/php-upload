@@ -17,6 +17,7 @@
                 uploadHandlerUrl: null,
                 uploadHandlerParams: function() {},
                 classname: null,
+                onchoose: function() {},
                 onsuccess: function(response) {},
                 onerror: function(message) {},
                 oninvalidfile: function(code) {},
@@ -93,6 +94,11 @@
             this.fileInput.change(function() {
                 self.uploadFile();
             });
+        }
+        
+        // register event handlers
+        if('function' === typeof options.onchoose) {
+            this.fileInput.change($.proxy(options.onchoose, this));
         }
 
         this.fileInput.appendTo(this.container);
