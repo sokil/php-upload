@@ -149,7 +149,7 @@
                         formatAllowed = false;
 
                 for (var i = 0; i < this.options.supportedFormats.length; i++) {
-                    if (currentFormat === this.options.supportedFormats[i]) {
+                    if (currentFormat.toLowerCase() === this.options.supportedFormats[i].toLowerCase()) {
                         formatAllowed = true;
                         break;
                     }
