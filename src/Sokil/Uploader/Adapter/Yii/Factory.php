@@ -35,7 +35,5 @@ class Factory extends \Sokil\Uploader\Factory implements \IApplicationComponent
         
         \Yii::app()->getClientScript()
             ->registerScriptFile($path . '/uploader.js');
-        
-        return $this;
     }
 }
