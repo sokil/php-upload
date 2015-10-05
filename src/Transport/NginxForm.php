@@ -54,32 +54,32 @@ namespace Sokil\Uploader\Transport;
  */
 class NginxForm extends AbstractTransport
 {
-    private $_file;
+    private $file;
     
     public function __construct($fieldName) {
         parent::__construct($fieldName);
-        $this->_file = $_FILES[$this->_fieldName];
+        $this->file = $_FILES[$this->fieldName];
     }
     
     public function getOriginalBaseName() {
-        if(!$this->_originalBaseName) {
-            $this->_originalBaseName = $_POST[$this->_fieldName . '_name'];
+        if(!$this->originalBaseName) {
+            $this->originalBaseName = $_POST[$this->fieldName . '_name'];
         }
         
-        return $this->_originalBaseName;
+        return $this->originalBaseName;
     }
     
     public function getFileSize() {
-        return (int) $_POST[$this->_fieldName . '_size'];
+        return (int) $_POST[$this->fieldName . '_size'];
     }
     
     public function getFileType()
     {
-        return $_POST[$this->_fieldName . '_type'];
+        return $_POST[$this->fieldName . '_type'];
     }
     
     public function upload($targetPath)
     {
-        rename($_POST[$this->_fieldName . '_tmp_name'], $targetPath);
+        rename($_POST[$this->fieldName . '_tmp_name'], $targetPath);
     }
 }

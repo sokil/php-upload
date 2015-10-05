@@ -9,8 +9,14 @@
         }
     ],
     "autoload": {
-        "psr-0": {
-            "Sokil": "src/"
+        "psr-4": {
+            "Sokil\\Uploader\\": "src/"
         }
+    },
+    "require": {
+        "php": ">=5.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
     }
 }

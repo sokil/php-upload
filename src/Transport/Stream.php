@@ -4,13 +4,13 @@ namespace Sokil\Uploader\Transport;
 
 class Stream extends AbstractTransport
 {
-    private $_sourceStream;
+    private $sourceStream;
     
     public function getOriginalBaseName() {
-        if(!$this->_originalBaseName) {
-            $this->_originalBaseName = empty($_GET[$this->_fieldName]) ? uniqid() : $_GET[$this->_fieldName];
+        if(!$this->originalBaseName) {
+            $this->originalBaseName = empty($_GET[$this->fieldName]) ? uniqid() : $_GET[$this->fieldName];
         }
-        return $this->_originalBaseName;
+        return $this->originalBaseName;
     }
     
     public function getFileSize() {
@@ -19,18 +19,18 @@ class Stream extends AbstractTransport
     
     protected function getSourceStream()
     {
-        if(!$this->_sourceStream) {
-            $this->_sourceStream = fopen('php://input', 'r');
+        if(!$this->sourceStream) {
+            $this->sourceStream = fopen('php://input', 'r');
         }
         
-        return $this->_sourceStream;
+        return $this->sourceStream;
     }
     
     protected function closeSourceStream()
     {
-        if($this->_sourceStream) {
-            fclose($this->_sourceStream);
-            $this->_sourceStream = null;
+        if($this->sourceStream) {
+            fclose($this->sourceStream);
+            $this->sourceStream = null;
         }
         
         return $this;

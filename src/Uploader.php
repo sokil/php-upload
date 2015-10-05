@@ -9,21 +9,21 @@ class Uploader
     const FILE_EXISTANCE_BEHAVIOR_RENAME    = 0;
     const FILE_EXISTANCE_BEHAVIOR_REPLACE   = 1;
     
-    private $_supportedFormats = array();
+    private $supportedFormats = array();
     
-    private $_fieldName = 'f';
+    private $fieldName = 'f';
     
-    private $_dirPermission = 0777;
+    private $dirPermission = 0777;
     
-    private $_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
+    private $fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
     
     /**
      *
      * @var \Sokil\Uploader\Transport\AbstractTransport
      */
-    private $_transport;
+    private $transport;
     
-    private $_lastUploadStatus;
+    private $lastUploadStatus;
 
     public function __construct($options = array())
     {
@@ -53,31 +53,31 @@ class Uploader
     
     public function setFieldName($fieldName)
     {
-        $this->_fieldName = $fieldName;
+        $this->fieldName = $fieldName;
         return $this;
     }
     
     public function setSupportedFormats(array $formats)
     {
-        $this->_supportedFormats = array_map('strtolower', $formats);
+        $this->supportedFormats = array_map('strtolower', $formats);
 
         return $this;
     }
     
     public function getSupportedFormats()
     {
-        return $this->_supportedFormats;
+        return $this->supportedFormats;
     }
     
     public function renameOnFileExistance()
     {
-        $this->_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_RENAME;
+        $this->fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_RENAME;
         return $this;
     }
     
     public function replaceOnFileExistance()
     {
-        $this->_fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
+        $this->fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
         return $this;
     }
 
@@ -90,26 +90,26 @@ class Uploader
      */
     protected function getTransport()
     {
-        if($this->_transport) {
-            return $this->_transport;
+        if($this->transport) {
+            return $this->transport;
         }
 
         $transportClassName = '\\Sokil\\Uploader\\Transport\\' . $this->getTransportName();
         
         /* @var $transport \Sokil\Uploader\Transport\AbstractTransport */
-        $this->_transport = new $transportClassName($this->_fieldName);
+        $this->transport = new $transportClassName($this->fieldName);
         
-        return $this->_transport;
+        return $this->transport;
     }
     
     public function getTransportName()
     {
         // iframe upload
-        if(isset($_FILES[$this->_fieldName])) {
+        if(isset($_FILES[$this->fieldName])) {
             $transportName = 'Form';
         }
         // iframe througn nginx's UploadModule
-        elseif(isset($_POST[$this->_fieldName . '_tmp_name'])) {
+        elseif(isset($_POST[$this->fieldName . '_tmp_name'])) {
             $transportName = 'NginxForm';
         }
         // Ajax upload to input stream
@@ -128,7 +128,7 @@ class Uploader
      */
     public function setTransport(AbstractTransport $transport)
     {
-        $this->_transport = $transport;
+        $this->transport = $transport;
         return $this;
     }
     
@@ -165,10 +165,9 @@ class Uploader
         // get target dir
         if(!$targetDir) {
             $targetDir = $this->getDefaultUploadDirectory();
-        }
-        elseif(!file_exists($targetDir)) {
+        } elseif(!file_exists($targetDir)) {
             $oldUmast = umask(0);
-            mkdir($targetDir, $this->_dirPermission, true);    
+            mkdir($targetDir, $this->dirPermission, true);
             umask($oldUmast);
         }
         
@@ -180,7 +179,7 @@ class Uploader
         
         // test if format supported
         $ext = strtolower(pathinfo($originalBaseName, PATHINFO_EXTENSION));
-        if(count($this->_supportedFormats) && !in_array($ext, $this->_supportedFormats)) {
+        if(count($this->supportedFormats) && !in_array($ext, $this->supportedFormats)) {
             throw new \Sokil\Uploader\Exception\WrongFormat('File not allowed');
         }
         
@@ -196,7 +195,7 @@ class Uploader
         $targetPath = $targetDir . '/' . $targetFileName . '.' . $ext;
         
         // rename file
-        if(self::FILE_EXISTANCE_BEHAVIOR_RENAME === $this->_fileExistanceBehavior) {
+        if(self::FILE_EXISTANCE_BEHAVIOR_RENAME === $this->fileExistanceBehavior) {
             $i = 0;
             while(false === ($targetFileStream = @fopen($targetPath, 'x'))) {
                 $targetPath = $targetDir . '/' . $targetFileName . ++$i . '.' . $ext;
@@ -216,7 +215,7 @@ class Uploader
         }
         
         // set upload status
-        $this->_lastUploadStatus = array(
+        $this->lastUploadStatus = array(
             'path'      => $targetPath,
             'size'      => $transport->getFileSize(),
             'extension' => $ext,
@@ -228,7 +227,7 @@ class Uploader
     
     public function getLastUploadStatus()
     {
-        return $this->_lastUploadStatus;
+        return $this->lastUploadStatus;
     }
     
     protected function getHeader($headerName, $default = null)

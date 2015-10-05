@@ -4,19 +4,19 @@ namespace Sokil\Uploader\Transport;
 
 abstract class AbstractTransport
 {
-    protected $_fieldName;
+    protected $fieldName;
     
-    protected $_originalBaseName;
+    protected $originalBaseName;
     
     public function __construct($fieldName) {
-        $this->_fieldName = $fieldName;
+        $this->fieldName = $fieldName;
     }
     
     abstract public function getOriginalBaseName();
     
     public function setOriginalBaseName($baseName)
     {
-        $this->_originalBaseName = $baseName;
+        $this->originalBaseName = $baseName;
         return $this;
     }
     
