@@ -1,26 +1,29 @@
 <?php 
 
-namespace Sokil\Uploader\Transport;
+namespace Sokil\Upload\Transport;
 
-use Sokil\Uploader\Exception;
+use Sokil\Upload\Exception\UploadError;
 
-class Form extends AbstractTransport
+class MultipartFormDataTransport extends AbstractTransport
 {
     private $file;
     
-    public function __construct($fieldName) {
+    public function __construct($fieldName)
+    {
         parent::__construct($fieldName);
         $this->file = $_FILES[$this->fieldName];
     }
     
-    public function getOriginalBaseName() {
+    public function getOriginalBaseName()
+    {
         if(!$this->originalBaseName) {
             $this->originalBaseName = $this->file['name'];
         }
         return $this->originalBaseName;
     }
     
-    public function getFileSize() {
+    public function getFileSize()
+    {
         return $this->file['size'];
     }
     
@@ -32,7 +35,7 @@ class Form extends AbstractTransport
     public function upload($targetPath)
     {
         if($this->file['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('Upload file error #' . $this->file['error']);
+            throw new UploadError('Upload file error', $this->file['error']);
         }
 
         move_uploaded_file($this->file['tmp_name'], $targetPath);

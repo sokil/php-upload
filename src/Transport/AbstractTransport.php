@@ -1,6 +1,6 @@
 <?php
 
-namespace Sokil\Uploader\Transport;
+namespace Sokil\Upload\Transport;
 
 abstract class AbstractTransport
 {
@@ -8,7 +8,8 @@ abstract class AbstractTransport
     
     protected $originalBaseName;
     
-    public function __construct($fieldName) {
+    public function __construct($fieldName)
+    {
         $this->fieldName = $fieldName;
     }
     

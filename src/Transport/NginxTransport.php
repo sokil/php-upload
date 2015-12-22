@@ -1,6 +1,6 @@
 <?php 
 
-namespace Sokil\Uploader\Transport;
+namespace Sokil\Upload\Transport;
 
 /**
  * This transport used on large files upload (more than 2 GB).
@@ -52,16 +52,18 @@ namespace Sokil\Uploader\Transport;
  *      report_uploads {UPLOAD_PROGRESS_NAME};
  *  }
  */
-class NginxForm extends AbstractTransport
+class NginxTransport extends AbstractTransport
 {
     private $file;
     
-    public function __construct($fieldName) {
+    public function __construct($fieldName)
+    {
         parent::__construct($fieldName);
         $this->file = $_FILES[$this->fieldName];
     }
     
-    public function getOriginalBaseName() {
+    public function getOriginalBaseName()
+    {
         if(!$this->originalBaseName) {
             $this->originalBaseName = $_POST[$this->fieldName . '_name'];
         }
@@ -69,7 +71,8 @@ class NginxForm extends AbstractTransport
         return $this->originalBaseName;
     }
     
-    public function getFileSize() {
+    public function getFileSize()
+    {
         return (int) $_POST[$this->fieldName . '_size'];
     }
     

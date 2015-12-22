@@ -1,13 +1,16 @@
 <?php
 
-namespace Sokil\Uploader;
+namespace Sokil\Upload;
 
-use \Sokil\Uploader\Transport\AbstractTransport;
+use Sokil\Upload\Transport\AbstractTransport;
 
-class Uploader
+use Sokil\Upload\Exception\WrongChecksum;
+use Sokil\Upload\Exception\WrongFormat;
+
+class Handler
 {
-    const FILE_EXISTANCE_BEHAVIOR_RENAME    = 0;
-    const FILE_EXISTANCE_BEHAVIOR_REPLACE   = 1;
+    const FILE_EXISTENCE_BEHAVIOR_RENAME    = 0;
+    const FILE_EXISTENCE_BEHAVIOR_REPLACE   = 1;
     
     private $supportedFormats = array();
     
@@ -15,15 +18,15 @@ class Uploader
     
     private $dirPermission = 0777;
     
-    private $fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
+    private $fileExistenceBehavior = self::FILE_EXISTENCE_BEHAVIOR_REPLACE;
     
     /**
      *
-     * @var \Sokil\Uploader\Transport\AbstractTransport
+     * @var \Sokil\Upload\Transport\AbstractTransport
      */
     private $transport;
     
-    private $lastUploadStatus;
+    private $lastUploadResult;
 
     public function __construct($options = array())
     {
@@ -35,11 +38,11 @@ class Uploader
         // file existence behavior option
         if(isset($options['fileExistanceBehavior'])) {
             switch($options['fileExistanceBehavior']) {
-                case self::FILE_EXISTANCE_BEHAVIOR_RENAME:
+                case self::FILE_EXISTENCE_BEHAVIOR_RENAME:
                     $this->renameOnFileExistance();
                     break;
                 default:
-                case self::FILE_EXISTANCE_BEHAVIOR_REPLACE:
+                case self::FILE_EXISTENCE_BEHAVIOR_REPLACE:
                     $this->replaceOnFileExistance();
                     break;
             }
@@ -71,13 +74,13 @@ class Uploader
     
     public function renameOnFileExistance()
     {
-        $this->fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_RENAME;
+        $this->fileExistenceBehavior = self::FILE_EXISTENCE_BEHAVIOR_RENAME;
         return $this;
     }
     
     public function replaceOnFileExistance()
     {
-        $this->fileExistanceBehavior = self::FILE_EXISTANCE_BEHAVIOR_REPLACE;
+        $this->fileExistenceBehavior = self::FILE_EXISTENCE_BEHAVIOR_REPLACE;
         return $this;
     }
 
@@ -85,7 +88,7 @@ class Uploader
      * Get transport. If no transport specified by self::setTransport(),
      * system will try to detect in automatically
      * 
-     * @return \Sokil\Uploader\Transport\AbstractTransport
+     * @return \Sokil\Upload\Transport\AbstractTransport
      * @throws \Exception
      */
     protected function getTransport()
@@ -94,9 +97,12 @@ class Uploader
             return $this->transport;
         }
 
-        $transportClassName = '\\Sokil\\Uploader\\Transport\\' . $this->getTransportName();
+        $transportClassName = '\\Sokil\\Upload\\Transport\\' . $this->getTransportName() . 'Transport';
+        if (!class_exists($transportClassName)) {
+            throw new GenericUploadException('Wrong transport passed');
+        }
         
-        /* @var $transport \Sokil\Uploader\Transport\AbstractTransport */
+        /* @var $transport \Sokil\Upload\Transport\AbstractTransport */
         $this->transport = new $transportClassName($this->fieldName);
         
         return $this->transport;
@@ -104,16 +110,14 @@ class Uploader
     
     public function getTransportName()
     {
-        // iframe upload
         if(isset($_FILES[$this->fieldName])) {
-            $transportName = 'Form';
-        }
-        // iframe througn nginx's UploadModule
-        elseif(isset($_POST[$this->fieldName . '_tmp_name'])) {
-            $transportName = 'NginxForm';
-        }
-        // Ajax upload to input stream
-        else {
+            // iframe upload
+            $transportName = 'MultipartFormData';
+        } elseif(isset($_POST[$this->fieldName . '_tmp_name'])) {
+            // iframe througn nginx's UploadModule
+            $transportName = 'Nginx';
+        } else {
+            // Ajax upload to input stream
             $transportName = 'Stream';
         }
         
@@ -123,8 +127,8 @@ class Uploader
     /**
      * Specify user defined transport class
      * 
-     * @param \Sokil\Uploader\Transport\AbstractTransport $transport
-     * @return \Sokil\Uploader\Uploader
+     * @param \Sokil\Upload\Transport\AbstractTransport $transport
+     * @return \Sokil\Upload\Uploader
      */
     public function setTransport(AbstractTransport $transport)
     {
@@ -180,7 +184,7 @@ class Uploader
         // test if format supported
         $ext = strtolower(pathinfo($originalBaseName, PATHINFO_EXTENSION));
         if(count($this->supportedFormats) && !in_array($ext, $this->supportedFormats)) {
-            throw new \Sokil\Uploader\Exception\WrongFormat('File not allowed');
+            throw new WrongFormat('File not allowed');
         }
         
         // get target file name
@@ -195,7 +199,7 @@ class Uploader
         $targetPath = $targetDir . '/' . $targetFileName . '.' . $ext;
         
         // rename file
-        if(self::FILE_EXISTANCE_BEHAVIOR_RENAME === $this->fileExistanceBehavior) {
+        if(self::FILE_EXISTENCE_BEHAVIOR_RENAME === $this->fileExistenceBehavior) {
             $i = 0;
             while(false === ($targetFileStream = @fopen($targetPath, 'x'))) {
                 $targetPath = $targetDir . '/' . $targetFileName . ++$i . '.' . $ext;
@@ -210,24 +214,27 @@ class Uploader
         if($expectedMD5) {
             $actualMD5 = base64_encode(md5_file($targetPath, true));
             if(rtrim($expectedMD5, '=') !== rtrim($actualMD5, '=')) {
-                throw new \Sokil\Uploader\Exception\WrongChecksum('MD5 sum missmatch. Expected ' . $expectedMD5 . ', actual ' . $actualMD5);            
+                throw new WrongChecksum('MD5 sum missmatch. Expected ' . $expectedMD5 . ', actual ' . $actualMD5);
             }
         }
         
         // set upload status
-        $this->lastUploadStatus = array(
-            'path'      => $targetPath,
-            'size'      => $transport->getFileSize(),
-            'extension' => $ext,
-            'original'  => $originalBaseName
+        $this->lastUploadResult = new Result(
+            $targetPath,
+            $transport->getFileSize(),
+            $ext,
+            $originalBaseName
         );
         
         return $this;
     }
-    
-    public function getLastUploadStatus()
+
+    /**
+     * @return Result
+     */
+    public function getLastUploadResult()
     {
-        return $this->lastUploadStatus;
+        return $this->lastUploadResult;
     }
     
     protected function getHeader($headerName, $default = null)

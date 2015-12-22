@@ -1,8 +1,10 @@
 <?php
 
-namespace Sokil\Uploader\Exception;
+namespace Sokil\Upload\Exception;
 
-class WrongFormat extends \Sokil\Uploader\Exception
+use Sokil\Upload\GenericUploadException;
+
+class WrongFormat extends GenericUploadException
 {
     
 }
