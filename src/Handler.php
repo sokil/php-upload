@@ -14,7 +14,7 @@ class Handler
     
     private $supportedFormats = array();
     
-    private $fieldName = 'f';
+    private $fieldName = 'file';
     
     private $dirPermission = 0777;
     
