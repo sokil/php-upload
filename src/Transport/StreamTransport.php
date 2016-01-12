@@ -1,63 +1,90 @@
-<?php 
+<?php
 
 namespace Sokil\Upload\Transport;
 
+use Sokil\Upload\Exception\NoFileUploadedException;
+use Sokil\Upload\Exception\PartialUploadException;
+use Sokil\Upload\File;
+
 class StreamTransport extends AbstractTransport
 {
-    private $sourceStream;
-    
-    public function getOriginalBaseName()
-    {
-        if(!$this->originalBaseName) {
-            $this->originalBaseName = empty($_GET[$this->fieldName]) ? uniqid() : $_GET[$this->fieldName];
-        }
-        return $this->originalBaseName;
-    }
-    
-    public function getFileSize()
-    {
-        return empty($_SERVER['CONTENT_LENGTH']) ? null : (int) $_SERVER['CONTENT_LENGTH'];
-    }
-    
-    protected function getSourceStream()
-    {
-        if(!$this->sourceStream) {
-            $this->sourceStream = fopen('php://input', 'r');
-        }
-        
-        return $this->sourceStream;
-    }
-    
-    protected function closeSourceStream()
-    {
-        if($this->sourceStream) {
-            fclose($this->sourceStream);
-            $this->sourceStream = null;
-        }
-        
-        return $this;
-    }
-    
-    public function upload($targetPath)
+    protected function validate()
     {
         // check if file uploaded
-        if(!$this->getFileSize()) {
-            throw new \Exception('No file');
+        if (!$this->getFileSize()) {
+            throw new NoFileUploadedException('No file uploaded');
         }
-        
-        // open target stream
-        $targetFileStream = fopen($targetPath, 'w');
+    }
 
-        // move stream
-        $size = stream_copy_to_stream($this->getSourceStream(), $targetFileStream);
-        
-        // close resources
-        $this->closeSourceStream();
-        fclose($targetFileStream);
-        
-        if($size !== $this->getFileSize()) {
-            throw new \Exception('Partial upload. Expected ' . $this->getFileSize() . ', found ' . $size);
+    protected function buildFile()
+    {
+        return new File(
+            'php://input',
+            $this->getOriginalBasename(),
+            $this->getFileSize(),
+            'application/octet-stream'
+        );
+    }
+
+    private function getOriginalBasename()
+    {
+        // try to get from query string
+        if (!empty($_GET[$this->fieldName])) {
+            return $_GET[$this->fieldName];
         }
-        
+
+        // try to get from header
+        $filenameHeaderValue = $this->getHeader('X-Filename');
+        if (!$filenameHeaderValue) {
+            return $filenameHeaderValue;
+        }
+
+        // generate
+        return uniqid();
+    }
+
+    private function getFileSize()
+    {
+        return empty($_SERVER['CONTENT_LENGTH'])
+            ? null
+            : (int) $_SERVER['CONTENT_LENGTH'];
+    }
+
+    /**
+     * @param $targetPath
+     * @return File
+     * @throws PartialUploadException
+     */
+    public function moveLocal($targetPath)
+    {
+        // source stream
+        $sourceFile = $this->getFile();
+        $sourceFileReadStream = $sourceFile->getStream('r');
+
+        // target stream
+        $targetFile = new File(
+            $targetPath,
+            $sourceFile->getOriginalBasename(),
+            $sourceFile->getSize(),
+            $sourceFile->getType()
+        );
+        $targetFileWriteStream = $targetFile->getStream('w+');
+
+        // move stream content
+        $size = stream_copy_to_stream(
+            $sourceFileReadStream,
+            $targetFileWriteStream
+        );
+
+        // close resources
+        fclose($sourceFileReadStream);
+        fclose($targetFileWriteStream);
+
+        // check copied file size
+        if ($size !== $this->getFileSize()) {
+            throw new PartialUploadException('Partial upload. Expected ' . $this->getFileSize() . ', found ' . $size);
+        }
+
+        return $targetFile;
     }
 }

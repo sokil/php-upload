@@ -3,19 +3,19 @@
 namespace Sokil\Upload\Transport;
 
 /**
- * This transport used on large files upload (more than 2 GB).
+ * This file used on large files upload (more than 2 GB).
  * 
- * On standart upload file moved to php's temp dir, and then moved to target 
- * destinarion using move_uploaded_file. If this dirs on different 
+ * On standard upload file moved to php's temp dir, and then moved to target
+ * destination using move_uploaded_file. If this dirs on different
  * physical devises, some time will spend to move file physically between devices.
  * 
- * There is another reason to use this transport on nginx + php-fpm stack.
+ * There is another reason to use nginx + php-fpm stack.
  * During upload nginx cached file to its own temp dir. After passing control to 
  * php-fpm, nginx moves cached file to php's temp dir, and than php moves file 
  * to destination using move_uploaded_file. So file comied three times, and
  * maybe on different physical devices.
  * 
- * This transport moves file directly to required device, so in php code only
+ * This method moves file directly to required device, so in php code only
  * rename to destination required.   
  * 
  * Nginx configuration:
@@ -54,35 +54,46 @@ namespace Sokil\Upload\Transport;
  */
 class NginxTransport extends AbstractTransport
 {
-    private $file;
-    
-    public function __construct($fieldName)
+    protected function validate()
     {
-        parent::__construct($fieldName);
-        $this->file = $_FILES[$this->fieldName];
-    }
-    
-    public function getOriginalBaseName()
-    {
-        if(!$this->originalBaseName) {
-            $this->originalBaseName = $_POST[$this->fieldName . '_name'];
+        if (empty($_POST[$this->fieldName . '_size'])) {
+            throw new NoFileUploadedException(
+                'No file was uploaded',
+                UPLOAD_ERR_NO_FILE
+            );
         }
-        
-        return $this->originalBaseName;
     }
-    
-    public function getFileSize()
+
+    protected function buildFile()
     {
-        return (int) $_POST[$this->fieldName . '_size'];
+        return new File(
+            $_POST[$this->fieldName . '_tmp_name'],
+            $_POST[$this->fieldName . '_name'],
+            $_POST[$this->fieldName . '_size'],
+            $_POST[$this->fieldName . '_type']
+        );
     }
-    
-    public function getFileType()
+
+    /**
+     * @param $targetPath
+     * @return File
+     */
+    public function moveLocal($targetPath)
     {
-        return $_POST[$this->fieldName . '_type'];
-    }
-    
-    public function upload($targetPath)
-    {
-        rename($_POST[$this->fieldName . '_tmp_name'], $targetPath);
+        $sourceFile = $this->getFile();
+
+        $targetFile = new File(
+            $targetPath,
+            $sourceFile->getOriginalBasename(),
+            $sourceFile->getSize(),
+            $sourceFile->getType()
+        );
+
+        rename(
+            $sourceFile->getPath(),
+            $targetPath
+        );
+
+        return $targetFile;
     }
 }

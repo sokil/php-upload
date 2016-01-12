@@ -3,6 +3,14 @@ PHP Uploader
 
 ### Nginx configuration
 
+Upload module:
+https://github.com/masterzen/nginx-upload-progress-module
+`--add-module=/path/to/nginx-upload-module`
+    
+Upload progress module:
+https://github.com/vkholodkov/nginx-upload-module
+`--add-module=/path/to/nginx-upload-progress-module`
+    
 ```
 upload_progress upload 5m;
 
