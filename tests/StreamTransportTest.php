@@ -70,6 +70,7 @@ class UploadTest extends \PHPUnit_Framework_TestCase
             ->uploadHandler
             ->moveLocal($targetDir, $targetFileName);
 
+        $this->assertInstanceOf('\Sokil\Upload\File', $file);
         $this->assertEquals($expectedPath, $file->getPath());
         $this->assertEquals(self::$originalFileSize, $file->getSize());
         $this->assertEquals($expectedExtension, $file->getExtension());
@@ -89,6 +90,7 @@ class UploadTest extends \PHPUnit_Framework_TestCase
         // upload to defined dir and change file name
         $file = $this->uploadHandler->moveLocal(null, $targetFileName);
 
+        $this->assertInstanceOf('\Sokil\Upload\File', $file);
         $this->assertEquals($expectedPath, $file->getPath());
         $this->assertEquals(self::$originalFileSize, $file->getSize());
         $this->assertEquals($expectedExtension, $file->getExtension());
@@ -107,6 +109,7 @@ class UploadTest extends \PHPUnit_Framework_TestCase
         // upload to defined dir and leave original filename
         $file = $this->uploadHandler->moveLocal($targetDir);
 
+        $this->assertInstanceOf('\Sokil\Upload\File', $file);
         $this->assertEquals($expectedPath, $file->getPath());
         $this->assertEquals(self::$originalFileSize, $file->getSize());
         $this->assertEquals($expectedExtension, $file->getExtension());
@@ -124,11 +127,40 @@ class UploadTest extends \PHPUnit_Framework_TestCase
         // upload to defined dir and leave original filename
         $file = $this->uploadHandler->moveLocal();
 
+        $this->assertInstanceOf('\Sokil\Upload\File', $file);
         $this->assertEquals($expectedPath, $file->getPath());
         $this->assertEquals(self::$originalFileSize, $file->getSize());
         $this->assertEquals($expectedExtension, $file->getExtension());
         $this->assertEquals(self::$originalBaseName, $file->getOriginalBasename());
         
         unlink($expectedPath);
+    }
+
+    public function testMove_DefinedDir_ChangedFileName()
+    {
+        $expectedExtension = pathinfo(self::$originalBaseName, PATHINFO_EXTENSION);
+
+        $targetDir = sys_get_temp_dir() . '/test_dir';
+        $targetFileName = 'uploadedTestFile';
+        $targetBaseName = $targetFileName . '.' . $expectedExtension;
+
+        $expectedPath = $targetDir . '/' . $targetFileName . '.' . $expectedExtension;
+
+        // upload to defined dir and change file name
+        $file = $this
+            ->uploadHandler
+            ->move(
+                new Filesystem(new Local($targetDir, true)),
+                $targetFileName
+            );
+
+        $this->assertInstanceOf('\Gaufrette\File', $file);
+        $this->assertEquals($expectedPath, $targetDir . '/' . $file->getName());
+        $this->assertEquals(self::$originalFileSize, $file->getSize());
+        $this->assertEquals($expectedExtension, pathinfo($file->getName(), PATHINFO_EXTENSION));
+        $this->assertEquals($targetBaseName, $file->getName());
+
+        unlink($expectedPath);
+        rmdir($targetDir);
     }
 }

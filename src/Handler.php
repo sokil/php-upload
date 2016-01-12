@@ -101,8 +101,19 @@ class Handler
         if (!$tempDir) {
             $tempDir = sys_get_temp_dir();
         }
-        
+
         return $tempDir;
+    }
+
+    /**
+     * Get source file
+     * @return File
+     * @throws Exception\WrongChecksumException
+     * @throws Exception\WrongFormatException
+     */
+    public function getFile()
+    {
+        return $this->getTransport()->getFile();
     }
 
     /**
@@ -110,7 +121,7 @@ class Handler
      *
      * @param string $targetDir File system to store file. If omitted - store in php's upload_tmp_dir
      * @param string $targetFilename New file name. If omitted - use original filename
-     * @return array uploaded file metadata
+     * @return \Sokil\Upload\File uploaded file
      */
     public function moveLocal($targetDir = null, $targetFilename = null)
     {
@@ -149,24 +160,13 @@ class Handler
     }
 
     /**
-     * Get source file
-     * @return File
-     * @throws Exception\WrongChecksumException
-     * @throws Exception\WrongFormatException
-     */
-    public function getFile()
-    {
-        return $this->getTransport()->getFile();
-    }
-
-    /**
      * Move file to external filesystem
      *
      * @param Filesystem $filesystem File system to store file. If omitted - store in php's upload_tmp_dir
      * @param string $targetFilename New file name. If omitted - use original filename
      * @return \Gaufrette\File
      */
-    public function move(Filesystem $filesystem = null, $targetFilename = null)
+    public function move(Filesystem $filesystem = null, $targetFilename = null, $overwrite = true)
     {
         // source file
         $sourceFile = $this->getTransport()->getFile();
@@ -187,7 +187,8 @@ class Handler
 
         $filesystem->write(
             $targetBasename,
-            $content
+            $content,
+            $overwrite
         );
 
         return $filesystem->get($targetBasename);
