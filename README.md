@@ -35,12 +35,17 @@ rename of file required.
 
 Upload module:
 https://github.com/masterzen/nginx-upload-progress-module
-`--add-module=/path/to/nginx-upload-module`
-    
+```
+--add-module=/path/to/nginx-upload-module
+```
+
 Upload progress module:
 https://github.com/vkholodkov/nginx-upload-module
-`--add-module=/path/to/nginx-upload-progress-module`
-    
+```
+--add-module=/path/to/nginx-upload-progress-module
+```
+
+Example of nginx configuration to handle upload and progress:
 ```
 upload_progress upload 5m;
 
