@@ -12,7 +12,7 @@ namespace Sokil\Upload\Transport;
  * There is another reason to use nginx + php-fpm stack.
  * During upload nginx cached file to its own temp dir. After passing control to 
  * php-fpm, nginx moves cached file to php's temp dir, and than php moves file 
- * to destination using move_uploaded_file. So file comied three times, and
+ * to destination using move_uploaded_file. So file copied three times, and
  * maybe on different physical devices.
  * 
  * This method moves file directly to required device, so in php code only
