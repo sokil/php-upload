@@ -1,7 +1,9 @@
 PHP Uploader
 ========
 
+[![Latest Stable Version](https://poser.pugx.org/sokil/php-upload/v/stable.png)](https://packagist.org/packages/sokil/php-upload)
 [![Build Status](https://travis-ci.org/sokil/php-upload.svg?branch=master)](https://travis-ci.org/sokil/php-upload)
+[![Coverage Status](https://coveralls.io/repos/sokil/php-upload/badge.svg?branch=master&service=github)](https://coveralls.io/github/sokil/php-upload?branch=master)
 
 ### Installation
 
