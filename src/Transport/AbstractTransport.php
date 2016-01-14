@@ -45,9 +45,6 @@ abstract class AbstractTransport
         // validate
         $this->validate();
 
-        // build file
-        $this->file = $this->buildFile();
-
         // test if format supported
         if ($this->supportedFormats && !in_array($this->file->getExtension(), $this->supportedFormats)) {
             throw new WrongFormatException('File type not allowed');
@@ -59,6 +56,9 @@ abstract class AbstractTransport
                 throw new WrongChecksumException('Checksum missmatch');
             }
         }
+        
+        // build file
+        $this->file = $this->buildFile();
 
         return $this->file;
     }
