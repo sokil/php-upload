@@ -21,7 +21,7 @@ You can install library through Composer:
 ### Nginx configuration
 
 During standard upload file is moved to php's temp dir, and then moved to target
-destination using `move_uploaded_fil`e. If this dirs on different
+destination using `move_uploaded_file`. If this dirs on different
 physical drives, some time will be spend to move file physically between devices.
 
 There is another reason when nginx + php-fpm stack user.
