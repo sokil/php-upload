@@ -1,6 +1,23 @@
 PHP Uploader
 ========
 
+[![Build Status](https://travis-ci.org/sokil/php-upload.svg?branch=master)](https://travis-ci.org/sokil/php-upload)
+
+### Installation
+
+You can install library through Composer:
+```javascript
+{
+    "require": {
+        "sokil/php-upload": "dev-master"
+    }
+}
+```
+
+### Suggested packasges
+
+* https://github.com/sokil/upload.js - frontend component
+
 ### Nginx configuration
 
 Upload module:
