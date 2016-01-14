@@ -33,13 +33,13 @@ maybe on different physical devices.
 This method moves file directly to configured drive, so in php code only
 rename of file required.
 
-Upload module:
+Nginx must be compiled with this modules:
+* Upload module:
 https://github.com/masterzen/nginx-upload-progress-module
 ```
 --add-module=/path/to/nginx-upload-module
 ```
-
-Upload progress module:
+* Upload progress module:
 https://github.com/vkholodkov/nginx-upload-module
 ```
 --add-module=/path/to/nginx-upload-progress-module
