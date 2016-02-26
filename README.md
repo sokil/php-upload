@@ -19,6 +19,7 @@ You can install library through Composer:
 ### Suggested packasges
 
 * https://github.com/sokil/upload.js - frontend component
+* https://github.com/sokil/php-upload-sandbox - Sandbox to test backend and frontend. Clone repo and start server.
 
 ### Nginx configuration
 
