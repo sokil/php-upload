@@ -23,13 +23,30 @@ First create HTML:
     <input type="file" name="attachment" />
 ```
 
-Then add PHP code to upload action:
+Then add PHP code to upload action to upload file to local system:
 ```php
 <?php
     $uploader = new \Sokil\Upload\Handler([
         'fieldName' => 'attachment',
     ]);
     $uploader->moveLocal(__DIR__ . '/uploads/');
+```
+
+Also library supports Gaufrette filesistems. Read about Gaufrette at https://github.com/KnpLabs/Gaufrette.
+Read abount configuring Gaufrette filesystems in Symfony at https://github.com/KnpLabs/KnpGaufretteBundle.
+
+To upload file into Gaufrette Filesystem:
+```php
+<?php
+
+$filesystem = new \Gaufrette\Filesystem(new \Gaufrette\Adapter\Local(
+    this->getParameter('kernel.root_dir') . '/attachments/'
+));
+
+$uploader = new \Sokil\Upload\Handler([
+    'fieldName' => 'attachment',
+]);
+$uploader->move($filesystem);
 ```
 
 ### Suggested packasges
