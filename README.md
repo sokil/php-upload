@@ -20,17 +20,17 @@ You can install library through Composer:
 
 First create HTML:
 ```html
-    <input type="file" name="f" />
+    <input type="file" name="attachment" />
 ```
 
 Then add PHP code to upload action:
 ```php
 <?php
-    $uploader = new \Sokil\Upload\Handler();
+    $uploader = new \Sokil\Upload\Handler([
+        'fieldName' => 'attachment',
+    ]);
     $uploader->moveLocal(__DIR__ . '/uploads/');
 ```
-
-
 
 ### Suggested packasges
 
