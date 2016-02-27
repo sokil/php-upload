@@ -24,12 +24,14 @@ First create HTML:
 ```
 
 Then add PHP code to upload action to upload file to local system:
+
 ```php
 <?php
-    $uploader = new \Sokil\Upload\Handler([
-        'fieldName' => 'attachment',
-    ]);
-    $uploader->moveLocal(__DIR__ . '/uploads/');
+
+$uploader = new \Sokil\Upload\Handler([
+    'fieldName' => 'attachment',
+]);
+$uploader->moveLocal(__DIR__ . '/uploads/');
 ```
 
 Also library supports Gaufrette filesistems. Read about Gaufrette at https://github.com/KnpLabs/Gaufrette.
@@ -40,7 +42,7 @@ To upload file into Gaufrette Filesystem:
 <?php
 
 $filesystem = new \Gaufrette\Filesystem(new \Gaufrette\Adapter\Local(
-    this->getParameter('kernel.root_dir') . '/attachments/'
+    __DIR__ . '/attachments/'
 ));
 
 $uploader = new \Sokil\Upload\Handler([
