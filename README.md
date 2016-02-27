@@ -16,6 +16,22 @@ You can install library through Composer:
 }
 ```
 
+### Useage
+
+First create HTML:
+```html
+    <input type="file" name="f" />
+```
+
+Then add PHP code to upload action:
+```php
+<?php
+    $uploader = new \Sokil\Upload\Handler();
+    $uploader->moveLocal(__DIR__ . '/uploads/');
+```
+
+
+
 ### Suggested packasges
 
 * https://github.com/sokil/upload.js - frontend component
