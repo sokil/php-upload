@@ -116,6 +116,22 @@ class Handler
         return $this->getTransport()->getFile();
     }
 
+    private function buildTargetBasename(File $sourceFile, $targetFilename = null)
+    {
+        if ($targetFilename) {
+            $extension = $sourceFile->getExtension();
+            if ($extension) {
+                $targetBasename = $targetFilename . '.' . $extension;
+            } else {
+                $targetBasename = $targetFilename;
+            }
+        } else {
+            $targetBasename = $sourceFile->getOriginalBasename();
+        }
+
+        return $targetBasename;
+    }
+
     /**
      * Move file to local filesystem
      *
@@ -128,17 +144,8 @@ class Handler
         // source file
         $sourceFile = $this->getTransport()->getFile();
 
-        // target file name
-        if ($targetFilename) {
-            $extension = $sourceFile->getExtension();
-            if ($extension) {
-                $targetBasename = $targetFilename . '.' . $extension;
-            } else {
-                $targetBasename = $targetFilename;
-            }
-        } else {
-            $targetBasename = $sourceFile->getOriginalBasename();
-        }
+        // target base name
+        $targetBasename = $this->buildTargetBasename($sourceFile, $targetFilename);
 
         // target path
         if (!$targetDir) {
@@ -172,11 +179,8 @@ class Handler
         $sourceFile = $this->getTransport()->getFile();
 
         // target file name
-        if (!$targetFilename) {
-            $targetFilename = $sourceFile->getOriginalFilename();
-        }
-
-        $targetBasename = $targetFilename . '.' . $sourceFile->getExtension();
+        // target base name
+        $targetBasename = $this->buildTargetBasename($sourceFile, $targetFilename);
 
         // move file to target storage
         if ($this->options['transport'] === 'Stream') {

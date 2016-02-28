@@ -163,4 +163,80 @@ class UploadTest extends \PHPUnit_Framework_TestCase
         unlink($expectedPath);
         rmdir($targetDir);
     }
+
+    public function testBuildTargetBasename_SourcebasenameWitoutExtension_NoTargetFilename()
+    {
+        $sourceFile = new File(
+            '/tpm/some',
+            'oribinalBasename',
+            41,
+            'text/plain'
+        );
+
+        $reflectionClass = new \ReflectionClass($this->uploadHandler);
+        $reflectionMethod = $reflectionClass->getMethod('buildTargetBasename');
+        $reflectionMethod->setAccessible(true);
+
+        $this->assertEquals(
+            'oribinalBasename',
+            $reflectionMethod->invoke($this->uploadHandler, $sourceFile, null)
+        );
+    }
+
+    public function testBuildTargetBasename_SourcebasenameWitExtension_NoTargetFilename()
+    {
+        $sourceFile = new File(
+            '/tpm/some',
+            'oribinalBasename.ext',
+            41,
+            'text/plain'
+        );
+
+        $reflectionClass = new \ReflectionClass($this->uploadHandler);
+        $reflectionMethod = $reflectionClass->getMethod('buildTargetBasename');
+        $reflectionMethod->setAccessible(true);
+
+        $this->assertEquals(
+            'oribinalBasename.ext',
+            $reflectionMethod->invoke($this->uploadHandler, $sourceFile, null)
+        );
+    }
+
+    public function testBuildTargetBasename_SourcebasenameWitoutExtension_PassedTargetFilename()
+    {
+        $sourceFile = new File(
+            '/tpm/some',
+            'oribinalBasename',
+            41,
+            'text/plain'
+        );
+
+        $reflectionClass = new \ReflectionClass($this->uploadHandler);
+        $reflectionMethod = $reflectionClass->getMethod('buildTargetBasename');
+        $reflectionMethod->setAccessible(true);
+
+        $this->assertEquals(
+            'targetBasename',
+            $reflectionMethod->invoke($this->uploadHandler, $sourceFile, 'targetBasename')
+        );
+    }
+
+    public function testBuildTargetBasename_SourcebasenameWitExtension_PassedTargetFilename()
+    {
+        $sourceFile = new File(
+            '/tpm/some',
+            'targetBasename.ext',
+            41,
+            'text/plain'
+        );
+
+        $reflectionClass = new \ReflectionClass($this->uploadHandler);
+        $reflectionMethod = $reflectionClass->getMethod('buildTargetBasename');
+        $reflectionMethod->setAccessible(true);
+
+        $this->assertEquals(
+            'targetBasename.ext',
+            $reflectionMethod->invoke($this->uploadHandler, $sourceFile, 'targetBasename')
+        );
+    }
 }
