@@ -73,6 +73,12 @@ abstract class AbstractTransport
      */
     abstract protected function buildFile();
 
+    /**
+     * Get expected checksum
+     *
+     * @link https://tools.ietf.org/html/rfc1864
+     * @return string checksum
+     */
     public function getExpectedChecksum()
     {
         return $this->getHeader('Content-MD5');

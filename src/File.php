@@ -53,6 +53,12 @@ class File
         return $this->type;
     }
 
+    /**
+     * Get checksum of file
+     * 
+     * @link https://tools.ietf.org/html/rfc1864
+     * @return string checksum
+     */
     public function getChecksum()
     {
         return base64_encode(md5_file($this->path, true));
