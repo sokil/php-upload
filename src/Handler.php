@@ -177,8 +177,7 @@ class Handler
     {
         // source file
         $sourceFile = $this->getTransport()->getFile();
-
-        // target file name
+        
         // target base name
         $targetBasename = $this->buildTargetBasename($sourceFile, $targetFilename);
 
