@@ -55,13 +55,21 @@ class File
 
     /**
      * Get checksum of file
-     * 
+     *
      * @link https://tools.ietf.org/html/rfc1864
      * @return string checksum
      */
     public function getChecksum()
     {
         return base64_encode(md5_file($this->path, true));
+    }
+
+    /**
+     * @return string MD5 hash of file
+     */
+    public function getMd5Sum()
+    {
+        return md5_file($this->path);
     }
 
     public function getStream($mode = 'r')
