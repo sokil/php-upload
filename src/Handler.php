@@ -183,12 +183,9 @@ class Handler
         $targetBasename = $this->buildTargetBasename($sourceFile, $targetFilename);
 
         // move file to target storage
-        if ($this->options['transport'] === 'Stream') {
-            $content = stream_get_contents($sourceFile->getStream());
-        } else {
-            $content = file_get_contents($sourceFile->getPath());
-        }
+        $content = stream_get_contents($sourceFile->getStream());
 
+        // write file
         $filesystem->write(
             $targetBasename,
             $content,
