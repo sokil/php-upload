@@ -5,12 +5,12 @@ PHP Uploader
 [![Build Status](https://travis-ci.org/sokil/php-upload.svg?branch=master)](https://travis-ci.org/sokil/php-upload)
 [![Coverage Status](https://coveralls.io/repos/sokil/php-upload/badge.svg?branch=master&service=github)](https://coveralls.io/github/sokil/php-upload?branch=master)
 
-* Installation
-* Related packages
-* Quick start
-* Nginx configuration
-    * Using upload_module and upload_progress_module (nginx < 1.3.9)
-    * Using client_body_in_file_only directive
+* [Installation](#installation)
+* [Related packages](#related-packages)
+* [Quick start](#quick-start)
+* [Nginx configuration](#nginx-configuration
+    * [Using upload_module and upload_progress_module (nginx < 1.3.9)](#using-upload_module-and-upload_progress_module-nginx--139)
+    * [Using client_body_in_file_only directive](#using-client_body_in_file_only-directive)
 
 ## Installation
 
