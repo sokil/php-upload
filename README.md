@@ -8,7 +8,7 @@ PHP Uploader
 * [Installation](#installation)
 * [Related packages](#related-packages)
 * [Quick start](#quick-start)
-* [Nginx configuration](#nginx-configuration
+* [Nginx configuration](#nginx-configuration)
     * [Using upload_module and upload_progress_module (nginx < 1.3.9)](#using-upload_module-and-upload_progress_module-nginx--139)
     * [Using client_body_in_file_only directive](#using-client_body_in_file_only-directive)
 
