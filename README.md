@@ -82,7 +82,7 @@ rename of file required.
 
 ### Using upload_module and upload_progress_module (nginx < 1.3.9)
 
-This method is deprecated due to compilation errors of `upload_module` on nginx versions 1.3.9+.
+_This method is deprecated due to compilation errors of `upload_module` on nginx versions 1.3.9+._
 
 Nginx must be compiled with this modules:
 * Upload module: https://github.com/vkholodkov/nginx-upload-module
