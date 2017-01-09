@@ -5,7 +5,14 @@ PHP Uploader
 [![Build Status](https://travis-ci.org/sokil/php-upload.svg?branch=master)](https://travis-ci.org/sokil/php-upload)
 [![Coverage Status](https://coveralls.io/repos/sokil/php-upload/badge.svg?branch=master&service=github)](https://coveralls.io/github/sokil/php-upload?branch=master)
 
-### Installation
+* Installation
+* Related packages
+* Quick start
+* Nginx configuration
+    * Using upload_module and upload_progress_module (nginx < 1.3.9)
+    * Using client_body_in_file_only directive
+
+## Installation
 
 You can install library through Composer:
 ```javascript
@@ -16,7 +23,13 @@ You can install library through Composer:
 }
 ```
 
-### Useage
+## Related packages
+
+* https://github.com/sokil/upload.js - frontend component. Implements uploading wile without reloading page with upload progress
+* https://github.com/sokil/php-upload-sandbox - Sandbox to test backend (this library) and frontend (https://github.com/sokil/upload.js). T ostart clone repo and start server.
+* https://github.com/sokil/FileStorageBundle - Symfony bundle
+
+## Quick start
 
 First create HTML:
 ```html
@@ -51,13 +64,8 @@ $uploader = new \Sokil\Upload\Handler([
 $uploader->move($filesystem);
 ```
 
-### Suggested packasges
 
-* https://github.com/sokil/upload.js - frontend component
-* https://github.com/sokil/FileStorageBundle - Symfony bundle
-* https://github.com/sokil/php-upload-sandbox - Sandbox to test backend and frontend. Clone repo and start server.
-
-### Nginx configuration
+## Nginx configuration
 
 During standard upload file is moved to php's temp dir, and then moved to target
 destination using `move_uploaded_file`. If this dirs on different
@@ -71,6 +79,8 @@ maybe on different physical devices.
 
 This method moves file directly to configured drive, so in php code only
 rename of file required.
+
+### Using upload_module and upload_progress_module (nginx < 1.3.9)
 
 Nginx must be compiled with this modules:
 * Upload module: https://github.com/vkholodkov/nginx-upload-module
@@ -118,3 +128,9 @@ server
 
 }
 ```
+
+### Using client_body_in_file_only directive
+
+See more info at http://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_in_file_only
+
+Currently not supported
