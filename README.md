@@ -64,6 +64,11 @@ $uploader = new \Sokil\Upload\Handler([
 $uploader->move($filesystem);
 ```
 
+## Upload transports
+
+### Stream upload
+### Nginx upload
+### Multipart Form Data Transport
 
 ## Nginx configuration
 
@@ -71,7 +76,7 @@ During standard upload file is moved to php's temp dir, and then moved to target
 destination using `move_uploaded_file`. If this dirs on different
 physical drives, some time will be spend to move file physically between devices.
 
-There is another reason when nginx + php-fpm stack user.
+There is another reason when nginx + php-fpm stack used.
 During upload nginx stored file to its own temp dir. After passing control to 
 php-fpm, nginx moves cached file to php's temp dir, and than php moves file 
 to destination using `move_uploaded_file`. So file copied three times, and
