@@ -58,6 +58,14 @@ class Handler
             $this->options['validateChecksum'] = (bool) $options['validateChecksum'];
         }
     }
+    
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;    
+    }
 
     /**
      * @param AbstractTransport $transport
