@@ -38,27 +38,29 @@ abstract class AbstractTransport
      */
     public function getFile()
     {
-        if ($this->file) {
+        if (!empty($this->file)) {
             return $this->file;
         }
 
         // validate
         $this->validate();
 
+        // build file
+        $file = $this->buildFile();
+
         // test if format supported
-        if ($this->supportedFormats && !in_array($this->file->getExtension(), $this->supportedFormats)) {
+        if (!empty($this->supportedFormats) && !in_array($file->getExtension(), $this->supportedFormats)) {
             throw new WrongFormatException('File type not allowed');
         }
 
         // check checksum
         if ($this->isChecksumValidationAllowed) {
-            if ($this->getExpectedChecksum() !== $this->file->getChecksum()) {
+            if ($this->getExpectedChecksum() !== $file->getChecksum()) {
                 throw new WrongChecksumException('Checksum missmatch');
             }
         }
-        
-        // build file
-        $this->file = $this->buildFile();
+
+        $this->file = $file;
 
         return $this->file;
     }
@@ -69,7 +71,7 @@ abstract class AbstractTransport
     abstract protected function validate();
 
     /**
-     * @return
+     * @return File
      */
     abstract protected function buildFile();
 
