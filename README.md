@@ -26,7 +26,7 @@ You can install library through Composer:
 ## Related packages
 
 * https://github.com/sokil/upload.js - frontend component. Implements uploading wile without reloading page with upload progress
-* https://github.com/sokil/php-upload-sandbox - Sandbox to test backend (this library) and frontend (https://github.com/sokil/upload.js). T ostart clone repo and start server.
+* https://github.com/sokil/php-upload-sandbox - Sandbox to test backend (this library) and frontend (https://github.com/sokil/upload.js). To start testing just clone repo and start server.
 * https://github.com/sokil/FileStorageBundle - Symfony bundle
 
 ## Quick start
