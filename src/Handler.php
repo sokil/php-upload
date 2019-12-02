@@ -24,9 +24,14 @@ class Handler
 
     public function __construct($options = array())
     {
+        // configure field name
+        if (isset($options['fieldName'])) {
+            $this->options['fieldName'] = $options['fieldName'];
+        }
+        
         $fieldName = $this->options['fieldName'];
 
-        // transport
+        // detect transport
         if (!isset($options['transport'])) {
             if (isset($_FILES[$fieldName])) {
                 // iframe upload
@@ -42,15 +47,9 @@ class Handler
             $this->options['transport'] = $options['transport'];
         }
 
-
         // supported formats option
         if (isset($options['supportedFormats']) && is_array($options['supportedFormats'])) {
             $this->options['supportedFormats'] = array_map('strtolower', $options['supportedFormats']);
-        }
-        
-        // field name
-        if (isset($options['fieldName'])) {
-            $this->options['fieldName'] = $options['fieldName'];
         }
 
         // checksum
